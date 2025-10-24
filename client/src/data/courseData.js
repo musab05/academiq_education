@@ -1,0 +1,73 @@
+// src/data/courseData.js
+import thumbnail from '../public/images/thumbnail.jpg';
+
+const courses = [
+  {
+    title: 'Web Design Fundamentals',
+    duration: '6 Weeks',
+    level: 'Beginner',
+    instructor: 'John Smith',
+    students: 156,
+    image: thumbnail,
+    price: 29,
+    offerPrice: 0,
+    category: 'Photography',
+  },
+  {
+    title: 'UI/UX Design',
+    duration: '6 Weeks',
+    level: 'Intermediate',
+    instructor: 'Emily Johnson',
+    students: 156,
+    image: thumbnail,
+    price: 29,
+    offerPrice: 0,
+    category: 'Photography',
+  },
+  {
+    title: 'Mobile App Development',
+    duration: '8 Weeks',
+    level: 'Intermediate',
+    instructor: 'David Brown',
+    students: 156,
+    image: thumbnail,
+    price: 59,
+    offerPrice: 49,
+    category: 'Photography',
+  },
+  {
+    title: 'Graphic Design for Beginners',
+    duration: '10 Weeks',
+    level: 'Beginner',
+    instructor: 'Sarah Thompson',
+    students: 156,
+    image: thumbnail,
+    price: 29,
+    offerPrice: 0,
+    category: 'Photography',
+  },
+  {
+    title: 'Front-End Web Development',
+    duration: '10 Weeks',
+    level: 'Intermediate',
+    instructor: 'Michael Adams',
+    students: 156,
+    image: thumbnail,
+    price: 29,
+    offerPrice: 0,
+    category: 'Photography',
+  },
+  {
+    title: 'Advanced JavaScript',
+    duration: '8 Weeks',
+    level: 'Advanced',
+    instructor: 'Jennifer Wilson',
+    students: 156,
+    image: thumbnail,
+    price: 29,
+    offerPrice: 0,
+    category: 'Photography',
+  },
+];
+
+export default courses;
