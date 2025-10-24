@@ -23,7 +23,7 @@ The project consists of three main components:
 ### 3. **Chatbot** (AI Service)
 - **Technology**: Python, , OpenAI Whisper, NLP libraries
 - **Purpose**: Content processing, quiz generation, video transcription
-- **Port**: 5000
+- **Port**: 8000
 
 ---
 
