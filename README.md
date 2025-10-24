@@ -21,7 +21,7 @@ The project consists of three main components:
 - **Port**: 5173
 
 ### 3. **Chatbot** (AI Service)
-- **Technology**: Python, Flask, OpenAI Whisper, NLP libraries
+- **Technology**: Python, , OpenAI Whisper, NLP libraries
 - **Purpose**: Content processing, quiz generation, video transcription
 - **Port**: 5000
 
@@ -326,7 +326,7 @@ pip install -r requirements.txt
 
 Create `.env` file:
 ```env
-FLASK_PORT=5000
+FLASK_PORT=8000
 MONGO_URI=mongodb://localhost:27017/Academiq
 ```
 
