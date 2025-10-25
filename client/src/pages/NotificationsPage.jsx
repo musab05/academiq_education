@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { notificationAPI } from '../services/api';
 import { useNotification } from '../context/NotificationContext';
 import Header from '../components/Header';
+import Sidebar from '../components/Sidebar';
 import { FiBell, FiCheck, FiTrash2, FiCheckCircle } from 'react-icons/fi';
 
 const NotificationsPage = () => {
@@ -12,6 +13,7 @@ const NotificationsPage = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [unreadCount, setUnreadCount] = useState(0);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     fetchNotifications();
@@ -86,22 +88,20 @@ const NotificationsPage = () => {
     return colors[type] || colors.system;
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header mode="default" title="Notifications" onBack={() => navigate(-1)} />
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full"></div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header mode="default" title="Notifications" onBack={() => navigate(-1)} />
+    <div className="flex bg-gray-50 h-screen overflow-hidden">
+      <Sidebar collapsed={sidebarCollapsed} isOpen={sidebarCollapsed} onClose={() => setSidebarCollapsed(false)} />
       
-      <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6">
+      <div className="flex-1 flex flex-col min-w-0">
+        <Header onMenuClick={() => setSidebarCollapsed(!sidebarCollapsed)} />
+        
+        {loading ? (
+          <div className="flex items-center justify-center flex-1">
+            <div className="animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full"></div>
+          </div>
+        ) : (
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
+          <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-3 sm:p-4 md:p-6 border-b border-gray-200">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -201,6 +201,9 @@ const NotificationsPage = () => {
             )}
           </div>
         </div>
+          </div>
+        </div>
+        )}
       </div>
     </div>
   );

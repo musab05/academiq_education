@@ -112,6 +112,10 @@ const Breadcrumb = () => {
       breadcrumbs.push({ name: "Departments", path: "/departments" });
     } else if (path === "/events") {
       breadcrumbs.push({ name: "Events", path: "/events" });
+    } else if (path === "/notifications") {
+      breadcrumbs.push({ name: "Notifications", path: "/notifications" });
+    } else if (path === "/admin/instructor-requests") {
+      breadcrumbs.push({ name: "Instructor Requests", path: "/admin/instructor-requests" });
     }
     // Enrollments
     else if (path === "/enrollments/users") {
@@ -229,7 +233,8 @@ const Breadcrumb = () => {
       breadcrumbs.push({ name: "Engagement Report", path: path });
     } else if (path.match(/\/classroom\/[^/]+\/settings$/)) {
       const classroomPath = path.substring(0, path.lastIndexOf('/settings'));
-      breadcrumbs.push({ name: "My Classrooms", path: "/my-classrooms" });
+      const basePath = user?.role === 'student' ? "/my-classrooms" : "/classrooms";
+      breadcrumbs.push({ name: user?.role === 'student' ? "My Classrooms" : "Classrooms", path: basePath });
       breadcrumbs.push({ name: "Classroom Details", path: classroomPath });
       breadcrumbs.push({ name: "Settings", path: path });
     } else if (path.match(/\/classrooms\/[^/]+\/live$/)) {

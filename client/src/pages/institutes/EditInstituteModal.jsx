@@ -5,6 +5,9 @@ import { instituteAPI, userAPI } from '../../services/api';
 import UserSelector from '../../components/department/UserSelector';
 
 const EditInstituteModal = ({ institute, onClose, onSuccess }) => {
+  const currentUser = useSelector((state) => state.user.user);
+  const isSuperAdmin = currentUser?.role === 'superadmin';
+  
   const [formData, setFormData] = useState({
     name: institute.name,
     domain: institute.domain,
@@ -16,10 +19,10 @@ const EditInstituteModal = ({ institute, onClose, onSuccess }) => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchAdmins();
-  }, []);
-
-  const currentUser = useSelector((state) => state.user.user);
+    if (isSuperAdmin) {
+      fetchAdmins();
+    }
+  }, [isSuperAdmin]);
 
   const fetchAdmins = async () => {
     try {
@@ -106,17 +109,19 @@ const EditInstituteModal = ({ institute, onClose, onSuccess }) => {
             />
           </div>
 
-          <div>
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-              Assign Admin *
-            </label>
-            <UserSelector
-              users={admins}
-              selected={formData.adminId}
-              onSelect={(adminId) => setFormData({ ...formData, adminId })}
-              placeholder="Select an admin"
-            />
-          </div>
+          {isSuperAdmin && (
+            <div>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                Assign Admin *
+              </label>
+              <UserSelector
+                users={admins}
+                selected={formData.adminId}
+                onSelect={(adminId) => setFormData({ ...formData, adminId })}
+                placeholder="Select an admin"
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">

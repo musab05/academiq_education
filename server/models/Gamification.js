@@ -20,6 +20,12 @@ const gamificationSchema = new mongoose.Schema({
     name: String,
     description: String,
     icon: String,
+    tier: {
+      type: String,
+      enum: ['bronze', 'silver', 'gold', 'diamond'],
+      default: 'bronze'
+    },
+    xp: Number,
     earnedAt: {
       type: Date,
       default: Date.now
@@ -38,7 +44,7 @@ const gamificationSchema = new mongoose.Schema({
   achievements: [{
     type: {
       type: String,
-      enum: ['lesson_complete', 'course_complete', 'streak', 'quiz_perfect', 'first_course', 'speed_learner']
+      enum: ['lesson_complete', 'course_complete', 'streak', 'quiz_perfect', 'first_course', 'speed_learner', 'assignment_submit', 'video_watch', 'classroom_attend']
     },
     count: {
       type: Number,
@@ -46,6 +52,17 @@ const gamificationSchema = new mongoose.Schema({
     },
     lastEarned: Date
   }],
+  stats: {
+    lessonsCompleted: { type: Number, default: 0 },
+    coursesCompleted: { type: Number, default: 0 },
+    quizzesCompleted: { type: Number, default: 0 },
+    perfectQuizzes: { type: Number, default: 0 },
+    assignmentsSubmitted: { type: Number, default: 0 },
+    videosWatched: { type: Number, default: 0 },
+    classroomsAttended: { type: Number, default: 0 },
+    certificatesEarned: { type: Number, default: 0 },
+    teamsJoined: { type: Number, default: 0 }
+  },
   streak: {
     current: {
       type: Number,

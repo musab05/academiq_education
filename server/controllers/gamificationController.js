@@ -4,13 +4,49 @@ import Team from '../models/Team.js';
 import { recordActivity, getUserActivities } from '../services/activityService.js';
 
 const BADGES = {
-  FIRST_LESSON: { badgeId: 'first_lesson', name: 'First Steps', description: 'Complete your first lesson', icon: '🎯', xp: 10 },
-  FIRST_COURSE: { badgeId: 'first_course', name: 'Course Conqueror', description: 'Complete your first course', icon: '🏆', xp: 50 },
-  STREAK_7: { badgeId: 'streak_7', name: 'Week Warrior', description: '7-day learning streak', icon: '🔥', xp: 30 },
-  STREAK_30: { badgeId: 'streak_30', name: 'Monthly Master', description: '30-day learning streak', icon: '⚡', xp: 100 },
-  QUIZ_PERFECT: { badgeId: 'quiz_perfect', name: 'Perfect Score', description: 'Score 100% on a quiz', icon: '💯', xp: 20 },
-  SPEED_LEARNER: { badgeId: 'speed_learner', name: 'Speed Learner', description: 'Complete 5 lessons in one day', icon: '🚀', xp: 25 },
-  TEAM_PLAYER: { badgeId: 'team_player', name: 'Team Player', description: 'Join your first team', icon: '👥', xp: 15 }
+  // Beginner Badges
+  FIRST_LESSON: { badgeId: 'first_lesson', name: 'First Steps', description: 'Complete your first lesson', icon: '🎯', xp: 10, tier: 'bronze' },
+  FIRST_COURSE: { badgeId: 'first_course', name: 'Course Starter', description: 'Complete your first course', icon: '📚', xp: 50, tier: 'bronze' },
+  FIRST_QUIZ: { badgeId: 'first_quiz', name: 'Quiz Novice', description: 'Complete your first quiz', icon: '📝', xp: 15, tier: 'bronze' },
+  TEAM_PLAYER: { badgeId: 'team_player', name: 'Team Player', description: 'Join your first team', icon: '👥', xp: 15, tier: 'bronze' },
+  
+  // Streak Badges
+  STREAK_3: { badgeId: 'streak_3', name: 'Getting Started', description: '3-day learning streak', icon: '🔥', xp: 15, tier: 'bronze' },
+  STREAK_7: { badgeId: 'streak_7', name: 'Week Warrior', description: '7-day learning streak', icon: '🔥', xp: 30, tier: 'silver' },
+  STREAK_14: { badgeId: 'streak_14', name: 'Fortnight Fighter', description: '14-day learning streak', icon: '🔥', xp: 60, tier: 'silver' },
+  STREAK_30: { badgeId: 'streak_30', name: 'Monthly Master', description: '30-day learning streak', icon: '⚡', xp: 100, tier: 'gold' },
+  STREAK_100: { badgeId: 'streak_100', name: 'Century Champion', description: '100-day learning streak', icon: '💎', xp: 500, tier: 'diamond' },
+  
+  // Quiz Badges
+  QUIZ_PERFECT: { badgeId: 'quiz_perfect', name: 'Perfect Score', description: 'Score 100% on a quiz', icon: '💯', xp: 20, tier: 'silver' },
+  QUIZ_MASTER_5: { badgeId: 'quiz_master_5', name: 'Quiz Master', description: 'Score 100% on 5 quizzes', icon: '🎓', xp: 75, tier: 'gold' },
+  QUIZ_LEGEND_10: { badgeId: 'quiz_legend_10', name: 'Quiz Legend', description: 'Score 100% on 10 quizzes', icon: '👑', xp: 150, tier: 'diamond' },
+  
+  // Course Completion Badges
+  COURSES_3: { badgeId: 'courses_3', name: 'Learning Enthusiast', description: 'Complete 3 courses', icon: '📖', xp: 100, tier: 'silver' },
+  COURSES_5: { badgeId: 'courses_5', name: 'Knowledge Seeker', description: 'Complete 5 courses', icon: '🎓', xp: 200, tier: 'gold' },
+  COURSES_10: { badgeId: 'courses_10', name: 'Course Conqueror', description: 'Complete 10 courses', icon: '🏆', xp: 500, tier: 'diamond' },
+  
+  // Speed & Efficiency Badges
+  SPEED_LEARNER: { badgeId: 'speed_learner', name: 'Speed Learner', description: 'Complete 5 lessons in one day', icon: '🚀', xp: 25, tier: 'silver' },
+  NIGHT_OWL: { badgeId: 'night_owl', name: 'Night Owl', description: 'Complete lessons after 10 PM', icon: '🦉', xp: 20, tier: 'bronze' },
+  EARLY_BIRD: { badgeId: 'early_bird', name: 'Early Bird', description: 'Complete lessons before 6 AM', icon: '🌅', xp: 20, tier: 'bronze' },
+  
+  // Engagement Badges
+  SOCIAL_BUTTERFLY: { badgeId: 'social_butterfly', name: 'Social Butterfly', description: 'Join 3 teams', icon: '🦋', xp: 40, tier: 'silver' },
+  HELPFUL_HAND: { badgeId: 'helpful_hand', name: 'Helpful Hand', description: 'Help 5 team members', icon: '🤝', xp: 50, tier: 'silver' },
+  CLASSROOM_STAR: { badgeId: 'classroom_star', name: 'Classroom Star', description: 'Attend 10 live sessions', icon: '⭐', xp: 75, tier: 'gold' },
+  
+  // Achievement Badges
+  OVERACHIEVER: { badgeId: 'overachiever', name: 'Overachiever', description: 'Reach level 10', icon: '🌟', xp: 200, tier: 'gold' },
+  LEGEND: { badgeId: 'legend', name: 'Legend', description: 'Reach level 25', icon: '👑', xp: 500, tier: 'diamond' },
+  TOP_10: { badgeId: 'top_10', name: 'Top 10', description: 'Reach top 10 on leaderboard', icon: '🥇', xp: 100, tier: 'gold' },
+  TOP_3: { badgeId: 'top_3', name: 'Podium Finish', description: 'Reach top 3 on leaderboard', icon: '🏅', xp: 250, tier: 'diamond' },
+  
+  // Special Badges
+  ASSIGNMENT_ACE: { badgeId: 'assignment_ace', name: 'Assignment Ace', description: 'Submit 10 assignments', icon: '📄', xp: 60, tier: 'silver' },
+  VIDEO_WATCHER: { badgeId: 'video_watcher', name: 'Video Enthusiast', description: 'Watch 20 video lessons', icon: '🎬', xp: 50, tier: 'silver' },
+  CERTIFICATE_COLLECTOR: { badgeId: 'certificate_collector', name: 'Certificate Collector', description: 'Earn 5 certificates', icon: '🎖️', xp: 150, tier: 'gold' }
 };
 
 export const getUserGamification = async (req, res) => {
@@ -155,6 +191,58 @@ export const checkAndAwardBadge = async (userId, badgeKey, courseId = null) => {
   }
 };
 
+export const trackStat = async (userId, statType, increment = 1) => {
+  try {
+    let gamification = await Gamification.findOne({ user: userId });
+    if (!gamification) {
+      gamification = await Gamification.create({ user: userId });
+    }
+    
+    if (gamification.stats[statType] !== undefined) {
+      gamification.stats[statType] += increment;
+      await gamification.save();
+      
+      // Check for badge awards based on stats
+      await checkStatBadges(gamification);
+    }
+    
+    return gamification.stats;
+  } catch (error) {
+    console.error('Track stat error:', error);
+    return null;
+  }
+};
+
+const checkStatBadges = async (gamification) => {
+  const stats = gamification.stats;
+  const userId = gamification.user;
+  
+  // Course completion badges
+  if (stats.coursesCompleted === 1) await checkAndAwardBadge(userId, 'FIRST_COURSE');
+  if (stats.coursesCompleted === 3) await checkAndAwardBadge(userId, 'COURSES_3');
+  if (stats.coursesCompleted === 5) await checkAndAwardBadge(userId, 'COURSES_5');
+  if (stats.coursesCompleted === 10) await checkAndAwardBadge(userId, 'COURSES_10');
+  
+  // Quiz badges
+  if (stats.quizzesCompleted === 1) await checkAndAwardBadge(userId, 'FIRST_QUIZ');
+  if (stats.perfectQuizzes === 1) await checkAndAwardBadge(userId, 'QUIZ_PERFECT');
+  if (stats.perfectQuizzes === 5) await checkAndAwardBadge(userId, 'QUIZ_MASTER_5');
+  if (stats.perfectQuizzes === 10) await checkAndAwardBadge(userId, 'QUIZ_LEGEND_10');
+  
+  // Other badges
+  if (stats.lessonsCompleted === 1) await checkAndAwardBadge(userId, 'FIRST_LESSON');
+  if (stats.assignmentsSubmitted === 10) await checkAndAwardBadge(userId, 'ASSIGNMENT_ACE');
+  if (stats.videosWatched === 20) await checkAndAwardBadge(userId, 'VIDEO_WATCHER');
+  if (stats.certificatesEarned === 5) await checkAndAwardBadge(userId, 'CERTIFICATE_COLLECTOR');
+  if (stats.classroomsAttended === 10) await checkAndAwardBadge(userId, 'CLASSROOM_STAR');
+  if (stats.teamsJoined === 1) await checkAndAwardBadge(userId, 'TEAM_PLAYER');
+  if (stats.teamsJoined === 3) await checkAndAwardBadge(userId, 'SOCIAL_BUTTERFLY');
+  
+  // Level badges
+  if (gamification.level === 10) await checkAndAwardBadge(userId, 'OVERACHIEVER');
+  if (gamification.level === 25) await checkAndAwardBadge(userId, 'LEGEND');
+};
+
 export const recordActivityEndpoint = async (req, res) => {
   try {
     const { verb, targetType, targetId, metadata } = req.body;
@@ -202,11 +290,12 @@ export const updateStreak = async (req, res) => {
           gamification.streak.longest = gamification.streak.current;
         }
         
-        if (gamification.streak.current === 7) {
-          await checkAndAwardBadge(user._id, 'STREAK_7');
-        } else if (gamification.streak.current === 30) {
-          await checkAndAwardBadge(user._id, 'STREAK_30');
-        }
+        // Award streak badges
+        if (gamification.streak.current === 3) await checkAndAwardBadge(user._id, 'STREAK_3');
+        else if (gamification.streak.current === 7) await checkAndAwardBadge(user._id, 'STREAK_7');
+        else if (gamification.streak.current === 14) await checkAndAwardBadge(user._id, 'STREAK_14');
+        else if (gamification.streak.current === 30) await checkAndAwardBadge(user._id, 'STREAK_30');
+        else if (gamification.streak.current === 100) await checkAndAwardBadge(user._id, 'STREAK_100');
       } else if (daysDiff > 1) {
         gamification.streak.current = 1;
       }

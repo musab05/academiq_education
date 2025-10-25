@@ -5,6 +5,9 @@ import User from '../models/User.js';
 import Institute from '../models/Institute.js';
 import Notification from '../models/Notification.js';
 import InstructorRequest from '../models/InstructorRequest.js';
+import Course from '../models/Course.js';
+import Enrollment from '../models/Enrollment.js';
+import Classroom from '../models/Classroom.js';
 import { extractDomain } from '../middleware/institute.js';
 
 // Utility to generate a unique username
@@ -18,6 +21,66 @@ const generateUniqueUsername = async base => {
   }
 
   return username;
+};
+
+// Helper function to auto-enroll user in institute courses and classrooms
+const autoEnrollInInstituteCourses = async (user) => {
+  try {
+    if (!user.institute) return;
+
+    // Find all courses with auto-enrollment enabled for this institute
+    const courses = await Course.find({
+      institute: user.institute,
+      autoEnrollInstituteCourses: true,
+      published: true
+    });
+
+    // Enroll user in all auto-enrollment courses
+    const coursePromises = courses.map(async (course) => {
+      const existingEnrollment = await Enrollment.findOne({
+        enrolleeType: 'user',
+        enrolleeId: user._id,
+        course: course._id
+      });
+
+      if (!existingEnrollment) {
+        await Enrollment.create({
+          enrolleeType: 'user',
+          enrolleeId: user._id,
+          enrolleeModel: 'User',
+          course: course._id,
+          enrolledBy: user._id,
+          enrollmentSource: 'admin',
+          status: 'active'
+        });
+
+        if (!course.enrolledUsers.includes(user._id)) {
+          course.enrolledUsers.push(user._id);
+          await course.save();
+        }
+      }
+    });
+
+    // Find all classrooms with auto-enrollment enabled for this institute
+    const classrooms = await Classroom.find({
+      institute: user.institute,
+      autoEnrollInstituteStudents: true,
+      isActive: true
+    });
+
+    // Enroll user in all auto-enrollment classrooms
+    const classroomPromises = classrooms.map(async (classroom) => {
+      if (!classroom.enrolledStudents.includes(user._id)) {
+        classroom.enrolledStudents.push(user._id);
+        await classroom.save();
+      }
+    });
+
+    await Promise.all([...coursePromises, ...classroomPromises]);
+    console.log(`Auto-enrolled user ${user.email} in ${courses.length} course(s) and ${classrooms.length} classroom(s)`);
+  } catch (error) {
+    console.error('Error auto-enrolling in institute courses/classrooms:', error);
+  }
 };
 
 // Helper function to create instructor request notification
@@ -100,6 +163,11 @@ export const signup = async (req, res) => {
 
     await newUser.save();
 
+    // Auto-enroll in institute courses if applicable
+    if (instituteId) {
+      await autoEnrollInInstituteCourses(newUser);
+    }
+
     // If instructor role was requested, create a notification for superadmin
     if (instructorRequest) {
       await createInstructorRequest(newUser);
@@ -129,6 +197,24 @@ export const signup = async (req, res) => {
   }
 };
 
+// Endpoint to manually trigger auto-enrollment for logged-in users
+export const syncInstituteEnrollments = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    if (user.institute) {
+      await autoEnrollInInstituteCourses(user);
+      return res.json({ message: 'Enrollments synced successfully' });
+    }
+
+    res.json({ message: 'No institute associated with your account' });
+  } catch (error) {
+    console.error('Error syncing enrollments:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 export const signin = async (req, res) => {
   const { emailOrUsername, password } = req.body;
 
@@ -141,6 +227,11 @@ export const signin = async (req, res) => {
 
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
+
+    // Auto-enroll in institute courses on login
+    if (user.institute) {
+      await autoEnrollInInstituteCourses(user);
+    }
 
     const token = jwt.sign(
       { id: user._id, uuid: user.uuid, role: user.role, email: user.email },

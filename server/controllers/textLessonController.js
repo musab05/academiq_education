@@ -3,6 +3,7 @@ import TextLesson from '../models/TextLesson.js';
 import TextLessonProgress from '../models/TextLessonProgress.js';
 import Progress from '../models/Progress.js';
 import { processLessonContent } from '../services/contentProcessingService.js';
+import { syncEnrollmentProgress } from '../utils/progressSync.js';
 
 export const getTextLesson = async (req, res) => {
   try {
@@ -81,6 +82,7 @@ export const updateTextLessonProgress = async (req, res) => {
     );
 
     await updateCourseProgress(userId, lesson.course);
+    await syncEnrollmentProgress(userId, lesson.course);
 
     res.json(textProgress);
   } catch (error) {

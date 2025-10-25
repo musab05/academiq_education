@@ -13,9 +13,33 @@ import { requireRole } from '../middleware/rbac.js';
 
 const router = express.Router();
 
-router.get('/', authenticate, requireRole('superadmin'), getInstitutes);
+router.get('/my-institute', authenticate, requireRole('admin'), async (req, res) => {
+  try {
+    const Institute = (await import('../models/Institute.js')).default;
+    const institute = await Institute.findOne({ admin: req.user.id });
+    if (!institute) {
+      return res.status(404).json({ message: 'Institute not found' });
+    }
+    res.json(institute);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/', authenticate, requireRole('superadmin', 'admin'), async (req, res) => {
+  try {
+    const Institute = (await import('../models/Institute.js')).default;
+    if (req.user.role === 'admin') {
+      const institute = await Institute.findOne({ admin: req.user.id }).populate('admin', 'firstName lastName email');
+      return res.json(institute);
+    }
+    return getInstitutes(req, res);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 router.post('/', authenticate, requireRole('superadmin'), createInstitute);
-router.put('/:id', authenticate, requireRole('superadmin'), updateInstitute);
+router.put('/:id', authenticate, requireRole('superadmin', 'admin'), updateInstitute);
 router.delete('/:id', authenticate, requireRole('superadmin'), deleteInstitute);
 
 // Analytics

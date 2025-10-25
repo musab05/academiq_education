@@ -135,28 +135,16 @@ const EventManagementPage = () => {
   };
 
   return (
-    <div className="flex bg-gray-50 min-h-screen overflow-hidden">
-      <div className="hidden lg:block">
-        <motion.div 
-          animate={{ width: sidebarCollapsed ? '5rem' : '18rem' }}
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
-          className="sidebar-scroll sticky top-0 h-screen overflow-y-auto bg-white shadow-lg"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          <Sidebar collapsed={sidebarCollapsed} />
-        </motion.div>
-      </div>
+    <div className="flex bg-gray-50 h-screen overflow-hidden">
+      <Sidebar collapsed={sidebarCollapsed} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <Header onMenuClick={() => {
           if (window.innerWidth < 1024) setSidebarOpen(true);
           else setSidebarCollapsed(!sidebarCollapsed);
         }} />
         
-        <div className="flex flex-1">
-          <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6">
 
             
             <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
@@ -220,7 +208,6 @@ const EventManagementPage = () => {
                 />
               )}
             </div>
-          </div>
         </div>
       </div>
 

@@ -173,11 +173,6 @@ const menus = {
       icon: <FileText size={20} />,
       link: "/my-reports",
     },
-    {
-      name: "Settings",
-      icon: <Settings size={20} />,
-      link: "/settings",
-    },
   ],
   instructor: [
     {
@@ -221,6 +216,11 @@ const menus = {
       link: "/dashboard",
     },
     {
+      name: "Institute",
+      icon: <Building2 size={20} />,
+      link: "/institutes",
+    },
+    {
       name: "User Management",
       icon: <User size={20} />,
       subItems: [
@@ -247,11 +247,6 @@ const menus = {
       ],
     },
     {
-      name: "Departments",
-      icon: <Building2 size={20} />,
-      link: "/departments",
-    },
-    {
       name: "Certificates",
       icon: <Star size={20} />,
       link: "/certificates",
@@ -262,17 +257,16 @@ const menus = {
       link: "/events",
     },
     {
+      name: "Notifications",
+      icon: <Bell size={20} />,
+      link: "/notifications",
+    },
+    {
       name: "Reports",
       icon: <FileText size={20} />,
       subItems: [
         { name: "All Reports", link: "/reports" },
-        { name: "Assignments", link: "/assignments" },
       ],
-    },
-    {
-      name: "Settings",
-      icon: <Settings size={20} />,
-      link: "/settings",
     },
   ],
   superadmin: [
@@ -328,17 +322,21 @@ const menus = {
       link: "/events",
     },
     {
+      name: "Notifications",
+      icon: <Bell size={20} />,
+      link: "/notifications",
+    },
+    {
+      name: "Role Requests",
+      icon: <User size={20} />,
+      link: "/admin/instructor-requests",
+    },
+    {
       name: "Reports",
       icon: <FileText size={20} />,
       subItems: [
         { name: "All Reports", link: "/reports" },
-        { name: "Assignments", link: "/assignments" },
       ],
-    },
-    {
-      name: "Settings",
-      icon: <Settings size={20} />,
-      link: "/settings",
     },
   ],
 };
@@ -494,6 +492,10 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
         setActiveMenu("/events");
       } else if (location.pathname === "/certificates") {
         setActiveMenu("/certificates");
+      } else if (location.pathname === "/notifications") {
+        setActiveMenu("/notifications");
+      } else if (location.pathname === "/admin/instructor-requests") {
+        setActiveMenu("/admin/instructor-requests");
       } else if (location.pathname === "/recordings") {
         setActiveMenu("/recordings");
         setOpenMenus((prev) => ({ ...prev, Classrooms: true }));
@@ -761,58 +763,16 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
           ))}
         </div>
 
-        {/* Friends Section */}
-        {!isCollapsed && (
-          <div className="px-6 py-4 mt-6">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
-              FRIENDS
-            </h3>
-            <div className="space-y-3">
-              {friendsList.map((friend, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors duration-200"
-                >
-                  <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold"
-                    style={{ backgroundColor: "#FF5A00" }}
-                  >
-                    {friend.avatar}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {friend.name}
-                    </p>
-                    <p className="text-xs text-gray-500">{friend.role}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Settings Section */}
+      {/* Logout Section */}
       <div className="border-t border-gray-100 p-4 mt-auto">
-        {!isCollapsed && (
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-            SETTINGS
-          </h3>
-        )}
-        <div className="space-y-1">
-          <div className="flex items-center space-x-3 p-3 rounded-xl text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors duration-200">
-            <Settings size={20} className="text-gray-600" />
-            {!isCollapsed && (
-              <span className="font-medium text-sm">Settings</span>
-            )}
-          </div>
-          <div
-            onClick={handleLogout}
-            className="flex items-center space-x-3 p-3 rounded-xl text-red-600 hover:bg-red-50 cursor-pointer transition-colors duration-200"
-          >
-            <LogOut size={20} />
-            {!isCollapsed && <span className="font-medium text-sm">Logout</span>}
-          </div>
+        <div
+          onClick={handleLogout}
+          className="flex items-center space-x-3 p-3 rounded-xl text-red-600 hover:bg-red-50 cursor-pointer transition-colors duration-200"
+        >
+          <LogOut size={20} />
+          {!isCollapsed && <span className="font-medium text-sm">Logout</span>}
         </div>
       </div>
     </div>
@@ -869,9 +829,9 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
 
       {/* Desktop Sidebar */}
       <div
-        className={`h-screen transition-all duration-300 ${
+        className={`h-screen transition-all duration-300 flex-shrink-0 ${
           collapsed ? "w-20" : "w-72"
-        } hidden lg:block`}
+        } hidden lg:block overflow-hidden`}
       >
         <SidebarContent isMobile={false} />
       </div>

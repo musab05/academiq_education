@@ -4,6 +4,7 @@ import Lesson from "../models/Lesson.js";
 import AssignmentLesson from "../models/AssignmentLesson.js";
 import AssignmentLessonProgress from "../models/AssignmentLessonProgress.js";
 import Progress from "../models/Progress.js";
+import { syncEnrollmentProgress } from '../utils/progressSync.js';
 
 export const getAssignmentLesson = async (req, res) => {
   try {
@@ -195,6 +196,8 @@ export const submitAssignment = async (req, res) => {
       if (!assignmentProgress.completedAt) assignmentProgress.completedAt = new Date();
       await assignmentProgress.save();
     }
+
+    await syncEnrollmentProgress(userId, lesson.course);
 
     res.json({ success: true, progress: assignmentProgress });
   } catch (error) {

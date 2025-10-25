@@ -10,6 +10,10 @@ export const getUserById = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     
+    if (user.role === 'superadmin' && req.user.role !== 'superadmin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
     res.json(user);
   } catch (error) {
     console.error('Error fetching user:', error);
@@ -56,7 +60,14 @@ export const getUsers = async (req, res) => {
       .populate('institute', 'name domain')
       .sort({ createdAt: -1 });
 
-    res.json(users);
+    const filteredUsers = users.filter(user => {
+      if (user.role === 'superadmin' && currentUser.role !== 'superadmin') {
+        return false;
+      }
+      return true;
+    });
+
+    res.json(filteredUsers);
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Server error' });

@@ -4,6 +4,7 @@ import ScormLessonProgress from '../models/ScormLessonProgress.js';
 import Gamification from '../models/Gamification.js';
 import { checkAndAwardBadge } from './gamificationController.js';
 import { recordActivity } from '../services/activityService.js';
+import { syncEnrollmentProgress } from '../utils/progressSync.js';
 
 export const updateScormProgress = async (req, res) => {
   try {
@@ -91,7 +92,11 @@ export const updateScormProgress = async (req, res) => {
 
     // Update course progress if lesson is completed
     if (scormProgress.isCompleted) {
-      await updateCourseProgress(userId, lessonId);
+      const lesson = await Lesson.findById(lessonId);
+      if (lesson) {
+        await updateCourseProgress(userId, lessonId);
+        await syncEnrollmentProgress(userId, lesson.course);
+      }
     }
 
     res.json({ 
@@ -130,6 +135,7 @@ export const markLessonComplete = async (req, res) => {
 
     // Update course progress
     await updateCourseProgress(userId, lesson.course);
+    await syncEnrollmentProgress(userId, lesson.course);
     
     // Award XP using activity service
     const activityResult = await recordActivity(

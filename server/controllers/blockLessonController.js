@@ -3,6 +3,7 @@ import BlockLesson from '../models/BlockLesson.js';
 import BlockLessonProgress from '../models/BlockLessonProgress.js';
 import Progress from '../models/Progress.js';
 import { processLessonContent } from '../services/contentProcessingService.js';
+import { syncEnrollmentProgress } from '../utils/progressSync.js';
 
 export const getBlockLesson = async (req, res) => {
   try {
@@ -103,6 +104,7 @@ export const updateBlockLessonProgress = async (req, res) => {
     }
 
     await updateCourseProgress(userId, lesson.course);
+    await syncEnrollmentProgress(userId, lesson.course);
 
     res.json(blockProgress);
   } catch (error) {

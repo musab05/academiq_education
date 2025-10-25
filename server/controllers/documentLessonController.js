@@ -2,6 +2,7 @@ import Lesson from '../models/Lesson.js';
 import DocumentLesson from '../models/DocumentLesson.js';
 import DocumentLessonProgress from '../models/DocumentLessonProgress.js';
 import Progress from '../models/Progress.js';
+import { syncEnrollmentProgress } from '../utils/progressSync.js';
 
 export const getDocumentLesson = async (req, res) => {
   try {
@@ -86,6 +87,8 @@ export const markDocumentViewed = async (req, res) => {
       }
       await documentProgress.save();
     }
+
+    await syncEnrollmentProgress(userId, lesson.course);
 
     res.json({ success: true, progress: documentProgress });
   } catch (error) {

@@ -3,6 +3,8 @@ import { Server } from 'socket.io';
 const rooms = new Map();
 const userAttendance = new Map(); // Track unique users per room
 
+let ioInstance = null;
+
 export const initializeSignalingServer = (httpServer) => {
   const io = new Server(httpServer, {
     cors: {
@@ -12,8 +14,16 @@ export const initializeSignalingServer = (httpServer) => {
     },
   });
 
+  ioInstance = io;
+
   io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
+
+    // Join user's personal notification room
+    socket.on('join-notifications', ({ userId }) => {
+      socket.join(`user-${userId}`);
+      console.log(`User ${userId} joined notifications`);
+    });
 
     socket.on('join-room', ({ roomId, userId, userName, isHost, audioEnabled = false, videoEnabled = false }) => {
       socket.join(roomId);
@@ -237,4 +247,16 @@ export const initializeSignalingServer = (httpServer) => {
   };
 
   return io;
+};
+
+export const emitNotification = (userId, notification) => {
+  if (ioInstance) {
+    ioInstance.to(`user-${userId}`).emit('new-notification', notification);
+  }
+};
+
+export const emitRoleUpdate = (userId, newRole) => {
+  if (ioInstance) {
+    ioInstance.to(`user-${userId}`).emit('role-updated', { role: newRole });
+  }
 };

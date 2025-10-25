@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
 import { Plus, BarChart3, Settings, Edit, Trash2, Building2 } from 'lucide-react';
 import { instituteAPI } from '../../services/api';
@@ -11,6 +12,8 @@ import InstituteSettingsModal from './InstituteSettingsModal';
 
 const InstitutesPage = () => {
   const navigate = useNavigate();
+  const { user } = useSelector(state => state.user);
+  const isSuperAdmin = user?.role === 'superadmin';
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [institutes, setInstitutes] = useState([]);
@@ -26,7 +29,7 @@ const InstitutesPage = () => {
   const fetchInstitutes = async () => {
     try {
       const response = await instituteAPI.getAll();
-      setInstitutes(response.data);
+      setInstitutes(Array.isArray(response.data) ? response.data : [response.data]);
     } catch (error) {
       console.error('Error fetching institutes:', error);
     } finally {
@@ -76,13 +79,15 @@ const InstitutesPage = () => {
             <BarChart3 className="w-4 h-4" />
             <span className="hidden sm:inline">Dashboard</span>
           </button>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-all text-xs sm:text-sm font-medium flex items-center justify-center gap-2 tap-target"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Institute</span>
-          </button>
+          {isSuperAdmin && (
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-all text-xs sm:text-sm font-medium flex items-center justify-center gap-2 tap-target"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Institute</span>
+            </button>
+          )}
         </div>
       </div>
 

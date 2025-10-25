@@ -85,20 +85,9 @@ const TeamRecordingsPage = () => {
 
   return (
     <div className="flex bg-gray-50 h-screen overflow-hidden">
-      <div className="hidden lg:block">
-        <motion.div 
-          animate={{ width: sidebarCollapsed ? '5rem' : '18rem' }}
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
-          className="sidebar-scroll sticky top-0 h-screen overflow-y-auto bg-white shadow-lg"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          <Sidebar collapsed={sidebarCollapsed} />
-        </motion.div>
-      </div>
+      <Sidebar collapsed={sidebarCollapsed} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <Header onMenuClick={() => {
           if (window.innerWidth < 1024) setSidebarOpen(true);
           else setSidebarCollapsed(!sidebarCollapsed);

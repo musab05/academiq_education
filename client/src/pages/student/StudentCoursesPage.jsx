@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
-import { Search, Play } from 'lucide-react';
+import { Search, RefreshCw, Star } from 'lucide-react';
 import AddToPlaylistButton from '../../components/playlist/AddToPlaylistButton';
 import Sidebar from '../../components/Sidebar';
 import Header from '../../components/Header';
@@ -21,6 +21,8 @@ const StudentCoursesPage = () => {
   const [filterReset, setFilterReset] = useState(0);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { user } = useSelector(state => state.user);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     fetchEnrolledCourses();
@@ -34,6 +36,18 @@ const StudentCoursesPage = () => {
       console.error('Error fetching courses:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSyncEnrollments = async () => {
+    setSyncing(true);
+    try {
+      await courseAPI.syncInstituteEnrollments();
+      await fetchEnrolledCourses();
+    } catch (error) {
+      console.error('Error syncing enrollments:', error);
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -76,6 +90,17 @@ const StudentCoursesPage = () => {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3">
               <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">My Courses</h1>
               <div className="flex items-center gap-2 w-full sm:w-auto">
+                {user?.institute && (
+                  <button
+                    onClick={handleSyncEnrollments}
+                    disabled={syncing}
+                    className="flex items-center gap-2 px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 text-sm tap-target"
+                    title="Sync institute courses"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+                    <span className="hidden sm:inline">Sync</span>
+                  </button>
+                )}
                 <div className="relative flex-1 sm:flex-initial">
                   <input
                     value={searchTerm}
@@ -130,6 +155,18 @@ const StudentCoursesPage = () => {
                         className="w-full h-40 sm:h-48 object-cover"
                         onError={(e) => { e.target.src = thumbnail; }}
                       />
+                      {course.progress === 100 && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          whileHover={{ scale: 1.2, rotate: 360 }}
+                          transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+                          className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full p-2 shadow-lg"
+                          title="Course Completed!"
+                        >
+                          <Star className="w-5 h-5 text-white fill-white" />
+                        </motion.div>
+                      )}
                     </div>
                     <div className="p-3 sm:p-4">
                       <p className="text-xs sm:text-sm text-gray-600 mb-1">
@@ -137,6 +174,22 @@ const StudentCoursesPage = () => {
                       </p>
                       <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">{course.title}</h3>
                       <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-3">{course.description || 'No description'}</p>
+                      {course.progress !== undefined && course.progress < 100 && (
+                        <div className="mt-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-medium text-gray-700">Progress</span>
+                            <span className="text-xs font-semibold text-orange-600">{Math.round(course.progress)}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${course.progress}%` }}
+                              transition={{ duration: 0.5, ease: 'easeOut' }}
+                              className="bg-gradient-to-r from-orange-500 to-orange-600 h-2 rounded-full"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
                       <AddToPlaylistButton courseId={course._id} compact={true} />

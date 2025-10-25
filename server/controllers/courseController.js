@@ -21,7 +21,10 @@ export const deleteCourse = async (req, res) => {
 
 export const getAllCourses = async (req, res) => {
   try {
-    const courses = await Course.find({ published: true })
+    const courses = await Course.find({ 
+      published: true,
+      accessType: { $ne: 'private' }
+    })
       .populate("author", "firstName lastName profilePicture")
       .populate("categories", "name")
       .populate("institute", "name domain")
@@ -137,10 +140,11 @@ export const getCourseBySlug = async (req, res) => {
 
 export const getEnrolledCourses = async (req, res) => {
   try {
+    console.log('Getting enrolled courses for user:', req.user._id);
+    
     const enrollments = await Enrollment.find({
       enrolleeType: "user",
       enrolleeId: req.user._id,
-      status: "active",
       isActive: true,
     })
       .populate({
@@ -153,13 +157,21 @@ export const getEnrolledCourses = async (req, res) => {
       })
       .sort({ enrolledAt: -1 });
 
+    console.log(`Found ${enrollments.length} enrollments`);
+
     const courses = enrollments
-      .map((enrollment) => enrollment.course)
+      .map((enrollment) => {
+        if (!enrollment.course) return null;
+        const courseObj = enrollment.course.toObject();
+        courseObj.progress = enrollment.progress || 0;
+        return courseObj;
+      })
       .filter((course) => course !== null);
 
+    console.log(`Returning ${courses.length} courses`);
     res.json(courses);
   } catch (error) {
-    console.error(error);
+    console.error('Error in getEnrolledCourses:', error);
     res.status(500).json({ error: "Server error" });
   }
 };
@@ -285,6 +297,10 @@ export const updateCourseBySlug = async (req, res) => {
     if (req.body.emailNotifications !== undefined) updateData.emailNotifications = req.body.emailNotifications;
     if (req.body.gradingSystem) updateData.gradingSystem = req.body.gradingSystem;
     if (req.body.passingGrade !== undefined) updateData.passingGrade = req.body.passingGrade;
+    if (req.body.autoEnrollInstituteCourses !== undefined) updateData.autoEnrollInstituteCourses = req.body.autoEnrollInstituteCourses;
+    if (req.body.accessType) updateData.accessType = req.body.accessType;
+    if (req.body.requireApproval !== undefined) updateData.requireApproval = req.body.requireApproval;
+    if (req.body.price !== undefined) updateData.price = req.body.price;
     if (categories) {
       try {
         updateData.categories = typeof categories === "string" ? JSON.parse(categories) : categories;

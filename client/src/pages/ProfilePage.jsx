@@ -1,23 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { updateUser } from '../store/slices/userSlice';
+import api from '../services/api';
 import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, Calendar, Settings, Globe, Clock, Building2, Linkedin, Twitter, Github, ExternalLink } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, Settings, Globe, Clock, Building2, Linkedin, Twitter, Github, ExternalLink, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import ProfileStats from '../components/profile/ProfileStats';
 
 const ProfilePage = () => {
   const { user } = useSelector(state => state.user);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [adminRequest, setAdminRequest] = useState(null);
 
   useEffect(() => {
+    refreshUserData();
     fetchStats();
-  }, [user?.role]);
+    fetchAdminRequest();
+  }, []);
+
+  const refreshUserData = async () => {
+    try {
+      const res = await api.get('/api/auth/me');
+      if (res.data.user.role !== user?.role) {
+        dispatch(updateUser(res.data.user));
+      }
+    } catch (error) {
+      console.error('Failed to refresh user data:', error);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -28,6 +45,15 @@ const ProfilePage = () => {
       console.error('Failed to fetch stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAdminRequest = async () => {
+    try {
+      const res = await api.get('/api/admin-requests/my-request');
+      setAdminRequest(res.data);
+    } catch (error) {
+      console.log('No admin request found');
     }
   };
 
@@ -43,7 +69,7 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="flex bg-gray-50 min-h-screen overflow-hidden">
+    <div className="flex bg-gray-50 h-screen overflow-hidden">
       <Sidebar collapsed={sidebarCollapsed} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -69,7 +95,46 @@ const ProfilePage = () => {
                     <p className="text-sm sm:text-base text-gray-600">@{user?.username}</p>
                   </div>
 
-                  <div className="flex items-center justify-center sm:justify-start gap-2">{getRoleBadge(user?.role)}</div>
+                  <div className="flex items-center justify-center sm:justify-start gap-2">
+                    {getRoleBadge(user?.role)}
+                    {adminRequest && adminRequest.status === 'pending' && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
+                        <AlertCircle className="w-3 h-3" />
+                        Admin Request Pending
+                      </span>
+                    )}
+                  </div>
+
+                  {adminRequest && (
+                    <div className={`p-3 rounded-lg border ${
+                      adminRequest.status === 'pending' ? 'bg-yellow-50 border-yellow-200' :
+                      adminRequest.status === 'approved' ? 'bg-green-50 border-green-200' :
+                      'bg-red-50 border-red-200'
+                    }`}>
+                      <div className="flex items-start gap-2">
+                        {adminRequest.status === 'pending' && <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5" />}
+                        {adminRequest.status === 'approved' && <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />}
+                        {adminRequest.status === 'rejected' && <XCircle className="w-4 h-4 text-red-600 mt-0.5" />}
+                        <div className="flex-1">
+                          <p className={`text-sm font-medium ${
+                            adminRequest.status === 'pending' ? 'text-yellow-800' :
+                            adminRequest.status === 'approved' ? 'text-green-800' :
+                            'text-red-800'
+                          }`}>
+                            Admin Request {adminRequest.status === 'pending' ? 'Under Review' : adminRequest.status.charAt(0).toUpperCase() + adminRequest.status.slice(1)}
+                          </p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            {adminRequest.requestType === 'institute' ? adminRequest.instituteName : adminRequest.organizationName}
+                          </p>
+                          {adminRequest.reviewDate && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Reviewed on {new Date(adminRequest.reviewDate).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {user?.bio && (
                     <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
