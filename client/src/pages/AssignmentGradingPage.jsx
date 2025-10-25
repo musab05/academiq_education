@@ -10,7 +10,6 @@ const AssignmentGradingPage = () => {
   const { lessonId } = useParams();
   const { showNotification } = useNotification();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
@@ -73,24 +72,14 @@ const AssignmentGradingPage = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:block">
-        <Sidebar collapsed={sidebarCollapsed} />
-      </div>
-      
-      {/* Mobile Sidebar */}
-      <div className="lg:hidden">
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      </div>
+      <Sidebar 
+        collapsed={sidebarCollapsed} 
+        isOpen={sidebarCollapsed} 
+        onClose={() => setSidebarCollapsed(false)} 
+      />
       
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <Header onMenuClick={() => {
-          if (window.innerWidth >= 1024) {
-            setSidebarCollapsed(!sidebarCollapsed);
-          } else {
-            setSidebarOpen(true);
-          }
-        }} />
+        <Header onMenuClick={() => setSidebarCollapsed(!sidebarCollapsed)} />
         <div className="flex-1 overflow-auto">
           <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8">
             <div className="mb-6 sm:mb-8">

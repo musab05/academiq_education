@@ -41,6 +41,8 @@ import playlistRoutes from "./routes/playlists.js";
 import dashboardRoutes from "./routes/dashboard.js";
 import gamificationRoutes from "./routes/gamification.js";
 import notificationRoutes from "./routes/notifications.js";
+import instructorRequestRoutes from "./routes/instructorRequests.js";
+import adminRequestRoutes from "./routes/adminRequests.js";
 
 dotenv.config();
 
@@ -99,6 +101,8 @@ app.use("/api/playlists", playlistRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/gamification", gamificationRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/instructor-requests", instructorRequestRoutes);
+app.use("/api/admin-requests", adminRequestRoutes);
 console.log("All routes registered successfully");
 
 // Serve uploaded files (keeping for backwards compatibility)

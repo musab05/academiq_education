@@ -79,7 +79,7 @@ const CourseCard = ({ course, view }) => {
             <Settings className="w-4 h-4" />
           </button>
         </div>
-        <p className="text-sm text-gray-600 mb-3">{course.description || 'No description'}</p>
+        <p className="text-sm text-gray-600 mb-3 line-clamp-1">{course.description || 'No description'}</p>
       </div>
     </motion.div>
   );

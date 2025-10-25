@@ -51,6 +51,18 @@ const ClassroomSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    maxParticipants: {
+      type: Number,
+      default: 100,
+    },
+    isPrivate: {
+      type: Boolean,
+      default: false,
+    },
+    autoEnrollInstituteStudents: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

@@ -91,13 +91,19 @@ import DashboardPage from "./pages/DashboardPage";
 import GamificationPage from "./pages/GamificationPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import NotificationsPage from "./pages/NotificationsPage";
+import InstructorRequestsPage from "./pages/InstructorRequestsPage";
+import AdminRegistrationPage from "./pages/AdminRegistrationPage";
+import AdminInstitutePage from "./pages/AdminInstitutePage";
 import { clearLessonData } from "./store/slices/lessonSlice";
 import { useSelector } from "react-redux";
+import { useNotificationSocket } from "./hooks/useNotificationSocket";
 
 function AppContent() {
   const dispatch = useDispatch();
   const location = useLocation();
   const currentUser = useSelector((state) => state.user.user);
+  
+  useNotificationSocket();
 
   useEffect(() => {
     const lessonRoutes = ["/course-overview/", "-lesson/"];
@@ -109,7 +115,6 @@ function AppContent() {
       location.pathname.includes(route)
     );
 
-    // Only clear lesson data if not on lesson routes OR enrollment routes
     if (!isLessonRoute && !isEnrollmentRoute) {
       dispatch(clearLessonData());
     }
@@ -120,6 +125,7 @@ function AppContent() {
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
+      <Route path="/join-admin" element={<AdminRegistrationPage />} />
       <Route path="/auth" element={<AuthForm />} />
       <Route path="/all-courses" element={<BrowseCoursesPage />} />
       <Route path="/all-classrooms" element={<BrowseClassroomsPage />} />
@@ -132,6 +138,7 @@ function AppContent() {
       <Route path="/my-courses" element={<ProtectedRoute><StudentCoursesPage /></ProtectedRoute>} />
       <Route path="/my-reports" element={<ProtectedRoute><StudentReportsPage /></ProtectedRoute>} />
       <Route path="/my-institute" element={<ProtectedRoute><StudentInstitutePage /></ProtectedRoute>} />
+      <Route path="/admin/institute" element={<ProtectedRoute allowedRoles={['admin']}><AdminInstitutePage /></ProtectedRoute>} />
       <Route path="/playlists" element={<ProtectedRoute><PlaylistsPage /></ProtectedRoute>} />
       <Route path="/playlists/:playlistId" element={<ProtectedRoute><PlaylistDetailPage /></ProtectedRoute>} />
       <Route path="/achievements" element={<ProtectedRoute><GamificationPage /></ProtectedRoute>} />
@@ -162,6 +169,7 @@ function AppContent() {
       <Route path="/teams/:teamId/recordings" element={<ProtectedRoute><TeamRecordingsPage /></ProtectedRoute>} />
       <Route path="/departments" element={<ProtectedRoute><DepartmentManagementPage /></ProtectedRoute>} />
       <Route path="/events" element={<ProtectedRoute><EventManagementPage /></ProtectedRoute>} />
+      <Route path="/admin/instructor-requests" element={<ProtectedRoute allowedRoles={['superadmin']}><InstructorRequestsPage /></ProtectedRoute>} />
 
       <Route path="/enrollments/learners" element={<ProtectedRoute><UserEnrollmentsPage /></ProtectedRoute>} />
       <Route path="/enrollments/teams" element={<ProtectedRoute><TeamEnrollmentsPage /></ProtectedRoute>} />
@@ -174,9 +182,9 @@ function AppContent() {
       <Route path="/reports" element={<ProtectedRoute allowedRoles={['admin', 'superadmin', 'instructor']}><GlobalReportsPage /></ProtectedRoute>} />
       <Route path="/reports/course/:courseId" element={<ProtectedRoute allowedRoles={['admin', 'superadmin', 'instructor']}><GlobalCourseDetailPage /></ProtectedRoute>} />
       <Route path="/reports/user/:userId" element={<ProtectedRoute allowedRoles={['admin', 'superadmin', 'instructor']}><GlobalUserDetailPage /></ProtectedRoute>} />
-      <Route path="/institutes" element={<ProtectedRoute allowedRoles={['superadmin']}><InstitutesPage /></ProtectedRoute>} />
-      <Route path="/institutes/dashboard" element={<ProtectedRoute allowedRoles={['superadmin']}><InstitutesDashboard /></ProtectedRoute>} />
-      <Route path="/institutes/:id/analytics" element={<ProtectedRoute allowedRoles={['superadmin']}><InstituteAnalyticsPage /></ProtectedRoute>} />
+      <Route path="/institutes" element={<ProtectedRoute allowedRoles={['admin', 'superadmin']}><InstitutesPage /></ProtectedRoute>} />
+      <Route path="/institutes/dashboard" element={<ProtectedRoute allowedRoles={['admin', 'superadmin']}><InstitutesDashboard /></ProtectedRoute>} />
+      <Route path="/institutes/:id/analytics" element={<ProtectedRoute allowedRoles={['admin', 'superadmin']}><InstituteAnalyticsPage /></ProtectedRoute>} />
       <Route path="/classrooms" element={<ProtectedRoute><ClassroomsPage /></ProtectedRoute>} />
       <Route path="/my-classrooms" element={<ProtectedRoute><StudentClassroomsPage /></ProtectedRoute>} />
       <Route path="/classroom-preview/:classroomId" element={<ProtectedRoute><ClassroomPreviewPage /></ProtectedRoute>} />

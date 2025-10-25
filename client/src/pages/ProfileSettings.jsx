@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
-import { User, Lock, Save, Eye, EyeOff, RefreshCw, Building2, UserCheck, Shield } from 'lucide-react';
+import { User, Lock, Save, Eye, EyeOff, RefreshCw, Building2, UserCheck, Shield, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import ProfilePictureUpload from '../components/profile/ProfilePictureUpload';
@@ -25,10 +25,12 @@ const ProfileSettings = () => {
   const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false });
   const [profileData, setProfileData] = useState(null);
   const [departments, setDepartments] = useState([]);
+  const [adminRequest, setAdminRequest] = useState(null);
 
   useEffect(() => {
     fetchProfile();
     fetchDepartments();
+    fetchAdminRequest();
   }, []);
 
   useEffect(() => {
@@ -54,6 +56,15 @@ const ProfileSettings = () => {
       setDepartments(response.data);
     } catch (error) {
       console.log('Failed to load departments:', error);
+    }
+  };
+
+  const fetchAdminRequest = async () => {
+    try {
+      const response = await userAPI.get('/admin-requests/my-request');
+      setAdminRequest(response.data);
+    } catch (error) {
+      console.log('No admin request found');
     }
   };
 
@@ -158,7 +169,7 @@ const ProfileSettings = () => {
   }
 
   return (
-    <div className="flex bg-gray-50 min-h-screen overflow-hidden">
+    <div className="flex bg-gray-50 h-screen overflow-hidden">
       <Sidebar collapsed={sidebarCollapsed} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -177,6 +188,33 @@ const ProfileSettings = () => {
 
                 <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 mt-4 sm:mt-6">
                   <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Account Information</h2>
+                  
+                  {adminRequest && (
+                    <div className={`mb-4 p-3 rounded-lg border ${
+                      adminRequest.status === 'pending' ? 'bg-yellow-50 border-yellow-200' :
+                      adminRequest.status === 'approved' ? 'bg-green-50 border-green-200' :
+                      'bg-red-50 border-red-200'
+                    }`}>
+                      <div className="flex items-start gap-2">
+                        {adminRequest.status === 'pending' && <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />}
+                        {adminRequest.status === 'approved' && <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />}
+                        {adminRequest.status === 'rejected' && <XCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />}
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-xs font-medium ${
+                            adminRequest.status === 'pending' ? 'text-yellow-800' :
+                            adminRequest.status === 'approved' ? 'text-green-800' :
+                            'text-red-800'
+                          }`}>
+                            Admin Request {adminRequest.status.charAt(0).toUpperCase() + adminRequest.status.slice(1)}
+                          </p>
+                          <p className="text-xs text-gray-600 mt-0.5 truncate">
+                            {adminRequest.requestType === 'institute' ? adminRequest.instituteName : adminRequest.organizationName}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="space-y-2 sm:space-y-3">
                     <div>
                       <label className="text-xs sm:text-sm font-medium text-gray-600">Role</label>

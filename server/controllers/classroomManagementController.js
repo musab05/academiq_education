@@ -53,7 +53,7 @@ export const createClassroom = async (req, res) => {
 export const updateClassroom = async (req, res) => {
   try {
     const { classroomId } = req.params;
-    const { title, description, category, department } = req.body;
+    const { title, description, category, department, maxParticipants, isPrivate, autoEnrollInstituteStudents } = req.body;
     const currentUser = req.user;
     
     const classroom = await Classroom.findById(classroomId);
@@ -73,6 +73,9 @@ export const updateClassroom = async (req, res) => {
     if (description !== undefined) classroom.description = description;
     if (category) classroom.category = category;
     if (department !== undefined) classroom.department = department || null;
+    if (maxParticipants !== undefined) classroom.maxParticipants = maxParticipants;
+    if (isPrivate !== undefined) classroom.isPrivate = isPrivate;
+    if (autoEnrollInstituteStudents !== undefined) classroom.autoEnrollInstituteStudents = autoEnrollInstituteStudents;
     
     await classroom.save();
     await classroom.populate('instructor', 'firstName lastName email');

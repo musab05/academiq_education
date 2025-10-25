@@ -53,6 +53,7 @@ export const courseAPI = {
   getAllCourses: () => api.get("/api/courses/all"),
   getMyCourses: () => api.get("/api/courses/my-courses"),
   getEnrolledCourses: () => api.get("/api/courses/enrolled"),
+  syncInstituteEnrollments: () => api.post("/api/auth/sync-enrollments"),
   createCourse: (data) => api.post("/api/courses/create", data),
   getBySlug: (slug) => api.get(`/api/courses/slug/${slug}`),
   update: (slug, data) =>

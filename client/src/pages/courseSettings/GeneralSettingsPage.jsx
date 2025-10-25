@@ -46,7 +46,7 @@ const GeneralSettingsPage = () => {
   };
 
   return (
-    <div className="flex bg-gray-50 min-h-screen overflow-hidden">
+    <div className="flex bg-gray-50 h-screen overflow-hidden">
       <Sidebar collapsed={sidebarCollapsed} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header onMenuClick={() => { setSidebarCollapsed(!sidebarCollapsed); setSidebarOpen(!sidebarOpen); }} />

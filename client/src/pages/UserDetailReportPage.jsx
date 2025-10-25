@@ -54,12 +54,10 @@ const UserDetailReportPage = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <div className="hidden lg:block">
-        <Sidebar collapsed={sidebarCollapsed} />
-      </div>
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+    <div className="flex bg-gray-50 h-screen overflow-hidden">
+      <Sidebar collapsed={sidebarCollapsed} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <Header onMenuClick={() => {
           if (window.innerWidth < 1024) setSidebarOpen(true);
           else setSidebarCollapsed(!sidebarCollapsed);

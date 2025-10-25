@@ -2,6 +2,7 @@ import Lesson from '../models/Lesson.js';
 import ScormLesson from '../models/ScormLesson.js';
 import ScormLessonProgress from '../models/ScormLessonProgress.js';
 import Progress from '../models/Progress.js';
+import { syncEnrollmentProgress } from '../utils/progressSync.js';
 
 export const getScormLesson = async (req, res) => {
   try {
@@ -193,7 +194,11 @@ export const setCMIValue = async (req, res) => {
     if (['completed', 'passed'].includes(value) && 
         (element === 'cmi.core.lesson_status' || element === 'cmi.core.completion_status')) {
       console.log('Lesson completed, updating course progress');
-      await updateCourseProgress(userId, scormProgress.lesson);
+      const lesson = await Lesson.findById(scormProgress.lesson);
+      if (lesson) {
+        await updateCourseProgress(userId, scormProgress.lesson);
+        await syncEnrollmentProgress(userId, lesson.course);
+      }
     }
 
     res.json({ success: true, element, value });
@@ -267,7 +272,11 @@ export const commitScormData = async (req, res) => {
     await scormProgress.save();
     
     if (scormProgress.isCompleted) {
-      await updateCourseProgress(userId, lessonId);
+      const lesson = await Lesson.findById(lessonId);
+      if (lesson) {
+        await updateCourseProgress(userId, lessonId);
+        await syncEnrollmentProgress(userId, lesson.course);
+      }
     }
 
     res.json({ success: true, committed: true });

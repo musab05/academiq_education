@@ -118,6 +118,19 @@ const courseSchema = new mongoose.Schema(
       type: Number,
       default: 70,
     },
+    autoEnrollInstituteCourses: {
+      type: Boolean,
+      default: false,
+    },
+    accessType: {
+      type: String,
+      enum: ['public', 'private', 'paid'],
+      default: 'public',
+    },
+    requireApproval: {
+      type: Boolean,
+      default: false,
+    },
     comments: [{
       user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       text: String,

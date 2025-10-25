@@ -4,6 +4,7 @@ import Question from '../models/Question.js';
 import QuizLessonProgress from '../models/QuizLessonProgress.js';
 import Progress from '../models/Progress.js';
 import { recordActivity } from '../services/activityService.js';
+import { syncEnrollmentProgress } from '../utils/progressSync.js';
 
 export const getQuizLesson = async (req, res) => {
   try {
@@ -99,6 +100,7 @@ export const submitQuizAttempt = async (req, res) => {
     let activityResult = null;
     if (passed) {
       await updateCourseProgress(userId, lessonId);
+      await syncEnrollmentProgress(userId, lesson.course);
       
       // Award XP for quiz completion with accuracy bonus
       try {

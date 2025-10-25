@@ -22,10 +22,17 @@ const StudentInstitutePage = () => {
 
   const fetchInstitute = async () => {
     try {
-      const response = await instituteAPI.getAll();
-      const institutes = response.data || [];
-      const myInstitute = institutes.find(inst => inst._id === user.institute);
-      setInstitute(myInstitute);
+      if (user.role === 'admin') {
+        const response = await instituteAPI.getAll();
+        const institutes = response.data || [];
+        const myInstitute = institutes.find(inst => inst.admin === user._id || inst._id === user.institute);
+        setInstitute(myInstitute);
+      } else {
+        const response = await instituteAPI.getAll();
+        const institutes = response.data || [];
+        const myInstitute = institutes.find(inst => inst._id === user.institute);
+        setInstitute(myInstitute);
+      }
     } catch (error) {
       console.error('Error fetching institute:', error);
     } finally {

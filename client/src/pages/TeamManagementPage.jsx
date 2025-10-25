@@ -174,18 +174,10 @@ const TeamManagementPage = () => {
   const isStudent = user?.role === 'student';
 
   return (
-    <div className="flex bg-gray-50 min-h-screen overflow-hidden">
-      <motion.div 
-        animate={{ width: sidebarCollapsed ? '5rem' : '18rem' }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="hidden lg:block sidebar-scroll sticky top-0 h-screen overflow-y-auto bg-white shadow-lg"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
-        <Sidebar collapsed={sidebarCollapsed} />
-      </motion.div>
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="flex bg-gray-50 h-screen overflow-hidden">
+      <Sidebar collapsed={sidebarCollapsed} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <Header onMenuClick={() => { setSidebarCollapsed(!sidebarCollapsed); setSidebarOpen(true); }} />
         <div className="flex-1 p-4 sm:p-6">
           <div className="max-w-7xl mx-auto">

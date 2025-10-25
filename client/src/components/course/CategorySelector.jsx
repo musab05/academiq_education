@@ -169,7 +169,7 @@ const CategorySelector = ({ categories = [], selected = [], onSelect }) => {
         </div>
       )}
 
-      <div className="border border-gray-200 rounded-lg bg-white max-h-64 overflow-auto">
+      <div className="border border-gray-200 rounded-lg bg-white overflow-auto">
         {filteredTree.length > 0 ? (
           <div className="p-2">
             {filteredTree.map((node) => (

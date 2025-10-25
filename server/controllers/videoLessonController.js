@@ -3,6 +3,7 @@ import VideoLesson from '../models/VideoLesson.js';
 import VideoLessonProgress from '../models/VideoLessonProgress.js';
 import Progress from '../models/Progress.js';
 import { processLessonContent } from '../services/contentProcessingService.js';
+import { syncEnrollmentProgress } from '../utils/progressSync.js';
 
 export const getVideoLesson = async (req, res) => {
   try {
@@ -124,6 +125,7 @@ export const updateVideoLessonProgress = async (req, res) => {
     }
 
     await updateCourseProgress(userId, lesson.course);
+    await syncEnrollmentProgress(userId, lesson.course);
 
     res.json(videoProgress);
   } catch (error) {

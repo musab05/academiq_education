@@ -12,14 +12,23 @@ const AccessSettingsPage = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { showNotification } = useNotification();
-  const [settings, setSettings] = useState({ accessType: 'public', requireApproval: false, price: 0 });
+  const [settings, setSettings] = useState({ accessType: 'public', requireApproval: false, price: 0, autoEnrollInstituteCourses: false });
   const [saving, setSaving] = useState(false);
+  const [courseInstitute, setCourseInstitute] = useState(null);
 
   useEffect(() => {
     const loadSettings = async () => {
       try {
         const response = await api.get(`/api/courses/slug/${slug}`);
-        if (response.data) setSettings({ accessType: response.data.accessType || 'public', requireApproval: response.data.requireApproval || false, price: response.data.price || 0 });
+        if (response.data) {
+          setSettings({ 
+            accessType: response.data.accessType || 'public', 
+            requireApproval: response.data.requireApproval || false, 
+            price: response.data.price || 0,
+            autoEnrollInstituteCourses: response.data.autoEnrollInstituteCourses || false
+          });
+          setCourseInstitute(response.data.institute);
+        }
       } catch (error) {
         console.error('Error:', error);
       }
@@ -40,7 +49,7 @@ const AccessSettingsPage = () => {
   };
 
   return (
-    <div className="flex bg-gray-50 min-h-screen overflow-hidden">
+    <div className="flex bg-gray-50 h-screen overflow-hidden">
       <Sidebar collapsed={sidebarCollapsed} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header onMenuClick={() => { setSidebarCollapsed(!sidebarCollapsed); setSidebarOpen(!sidebarOpen); }} />
@@ -72,6 +81,18 @@ const AccessSettingsPage = () => {
                   <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
                 </label>
               </div>
+              {courseInstitute && (
+                <div className="flex items-center justify-between p-3 sm:p-4 bg-orange-50 rounded-lg gap-3 border border-orange-200">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm sm:text-base font-semibold text-gray-900">Institute Auto-Enrollment</h3>
+                    <p className="text-xs sm:text-sm text-gray-600">Automatically enroll all users from this institute's domain</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer flex-shrink-0 tap-target">
+                    <input type="checkbox" checked={settings.autoEnrollInstituteCourses} onChange={(e) => setSettings(prev => ({ ...prev, autoEnrollInstituteCourses: e.target.checked }))} className="sr-only peer" />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                  </label>
+                </div>
+              )}
             </div>
             <div className="flex justify-end mt-4 sm:mt-6">
               <button onClick={handleSave} disabled={saving} className={`w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-medium flex items-center justify-center gap-2 text-sm sm:text-base tap-target ${saving ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'} text-white`}>

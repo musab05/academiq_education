@@ -8,16 +8,19 @@ import Header from '../../components/Header';
 import { classroomManagementAPI } from '../../services/api';
 import DepartmentSelector from '../../components/common/DepartmentSelector';
 import CategorySelector from '../../components/common/CategorySelector';
+import { useNotification } from '../../context/NotificationContext';
 
 const ClassroomSettingsPage = () => {
   const { classroomId } = useParams();
   const currentUser = useSelector((state) => state.user.user);
+  const { showNotification } = useNotification();
   const [classroom, setClassroom] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     maxParticipants: 100,
     isPrivate: false,
+    autoEnrollInstituteStudents: false,
     category: '',
     department: '',
   });
@@ -41,6 +44,7 @@ const ClassroomSettingsPage = () => {
         description: found.description || '',
         maxParticipants: found.maxParticipants || 100,
         isPrivate: found.isPrivate || false,
+        autoEnrollInstituteStudents: found.autoEnrollInstituteStudents || false,
         category: found.category?._id || found.category || '',
         department: found.department?._id || found.department || '',
       });
@@ -59,10 +63,10 @@ const ClassroomSettingsPage = () => {
     setSaving(true);
     try {
       await classroomManagementAPI.update(classroomId, formData);
-      alert('Settings saved successfully');
+      showNotification({ type: 'success', message: 'Settings saved successfully' });
     } catch (error) {
       console.error('Error saving settings:', error);
-      alert('Failed to save settings');
+      showNotification({ type: 'error', message: 'Failed to save settings' });
     } finally {
       setSaving(false);
     }
@@ -77,16 +81,16 @@ const ClassroomSettingsPage = () => {
   }
 
   return (
-    <div className="flex bg-gray-50 min-h-screen overflow-hidden">
+    <div className="flex bg-gray-50 h-screen overflow-hidden">
       <Sidebar collapsed={sidebarCollapsed} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <Header onMenuClick={() => {
           setSidebarCollapsed(!sidebarCollapsed);
           setSidebarOpen(!sidebarOpen);
         }} />
         
-        <div className="flex-1 p-4 sm:p-6 md:p-8">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
           <div className="max-w-4xl mx-auto">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Classroom Settings</h1>
@@ -181,6 +185,22 @@ const ClassroomSettingsPage = () => {
                   Make classroom private (requires access code for sessions)
                 </label>
               </div>
+
+              {classroom?.institute && (
+                <div className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-orange-50 rounded-lg border border-orange-200">
+                  <input
+                    type="checkbox"
+                    id="autoEnroll"
+                    checked={formData.autoEnrollInstituteStudents}
+                    onChange={(e) => setFormData({ ...formData, autoEnrollInstituteStudents: e.target.checked })}
+                    disabled={currentUser?.role === 'student'}
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 border-gray-300 rounded focus:ring-orange-500 disabled:cursor-not-allowed mt-0.5"
+                  />
+                  <label htmlFor="autoEnroll" className="text-xs sm:text-sm font-medium text-gray-700">
+                    Auto-enroll all students from institute domain
+                  </label>
+                </div>
+              )}
             </div>
 
             {currentUser?.role !== 'student' && (

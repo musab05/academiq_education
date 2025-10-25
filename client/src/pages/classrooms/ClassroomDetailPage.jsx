@@ -172,7 +172,7 @@ const ClassroomDetailPage = () => {
   const remainingMinutes = totalMinutes % 60;
 
   return (
-    <div className="flex bg-gray-50 min-h-screen overflow-hidden">
+    <div className="flex bg-gray-50 h-screen overflow-hidden">
       {currentUser?.role !== 'student' && (
         <Sidebar collapsed={sidebarCollapsed} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       )}

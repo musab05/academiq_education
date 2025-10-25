@@ -11,7 +11,6 @@ import certificateImg from '../public/images/certificate.png';
 
 const CertificateDesignerPage = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { showNotification } = useNotification();
   const dispatch = useDispatch();
   const { template } = useSelector((state) => state.certificate);
@@ -102,29 +101,15 @@ const CertificateDesignerPage = () => {
   };
 
   return (
-    <div className="flex bg-gray-50 min-h-screen overflow-hidden">
-      {/* Desktop Sidebar */}
-      <motion.div 
-        animate={{ width: sidebarCollapsed ? '5rem' : '18rem' }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="hidden lg:block sidebar-scroll sticky top-0 h-screen overflow-y-auto bg-white shadow-lg flex-shrink-0"
-      >
-        <Sidebar collapsed={sidebarCollapsed} />
-      </motion.div>
-
-      {/* Mobile Sidebar */}
-      <div className="lg:hidden">
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      </div>
+    <div className="flex bg-gray-50 h-screen overflow-hidden">
+      <Sidebar 
+        collapsed={sidebarCollapsed} 
+        isOpen={sidebarCollapsed} 
+        onClose={() => setSidebarCollapsed(false)} 
+      />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <Header onMenuClick={() => {
-          if (window.innerWidth >= 1024) {
-            setSidebarCollapsed(!sidebarCollapsed);
-          } else {
-            setSidebarOpen(true);
-          }
-        }} />
+        <Header onMenuClick={() => setSidebarCollapsed(!sidebarCollapsed)} />
         
         <div className="flex-1 p-4 sm:p-6 overflow-y-auto">
           <div className="max-w-7xl mx-auto">

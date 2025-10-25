@@ -7,7 +7,7 @@ import {
 } from '../common/Session';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUserSession } from '../store/slices/userSlice';
-
+import CustomSelect from '../components/common/CustomSelect';
 import { useNotification } from '../context/NotificationContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
@@ -204,21 +204,18 @@ const AuthForm = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Role
                   </label>
-                  <select
-                    name="role"
-                    onChange={handleChange}
+                  <CustomSelect
+                    options={roles.map(role => ({
+                      value: role,
+                      label: role.charAt(0).toUpperCase() + role.slice(1)
+                    }))}
                     value={formData.role}
-                    className="w-full px-4 py-2 border rounded-lg mt-1 focus:outline-none focus:ring-2 focus:ring-[#ff7225]"
-                  >
-                    {roles.map(role => (
-                      <option key={role} value={role}>
-                        {role.charAt(0).toUpperCase() + role.slice(1)}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) => setFormData(prev => ({ ...prev, role: value }))}
+                    placeholder="Select role"
+                  />
                   {formData.role === 'instructor' && (
                     <p className="text-sm text-blue-600 mt-1">
                       📝 Note: Instructor accounts require admin approval. You'll be registered as a student initially and notified once approved.

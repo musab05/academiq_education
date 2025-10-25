@@ -1,6 +1,5 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import amazonImg from '../../public/images/amazonlogo.jpg';
 
 export default function HeroSection() {
   const navigate = useNavigate();
@@ -35,21 +34,54 @@ export default function HeroSection() {
 
       {/* Logos */}
       <section className="py-6 sm:py-10 px-4">
-        <div className="max-w-6xl mx-auto bg-white rounded-xl shadow flex justify-around items-center py-4 sm:py-6 px-3 sm:px-4 overflow-x-auto space-x-4 sm:space-x-6">
-          <img src={amazonImg} alt="Zapier" className="h-6 opacity-70" />
-          <div className="w-px h-6 bg-gray-200" />
-          <img src={amazonImg} alt="Spotify" className="h-6 opacity-70" />
-          <div className="w-px h-6 bg-gray-200" />
-          <img src={amazonImg} alt="Zoom" className="h-6 opacity-70" />
-          <div className="w-px h-6 bg-gray-200" />
-          <img src={amazonImg} alt="Amazon" className="h-6 opacity-70" />
-          <div className="w-px h-6 bg-gray-200" />
-          <img src={amazonImg} alt="Adobe" className="h-6 opacity-70" />
-          <div className="w-px h-6 bg-gray-200" />
-          <img src={amazonImg} alt="Notion" className="h-6 opacity-70" />
-          <div className="w-px h-6 bg-gray-200" />
-          <img src={amazonImg} alt="Netflix" className="h-6 opacity-70" />
+        <div className="max-w-6xl mx-auto bg-white rounded-xl shadow py-4 sm:py-6 overflow-hidden relative">
+          <div className="flex items-center gap-8 animate-scroll whitespace-nowrap">
+            {[...Array(2)].map((_, i) => (
+              <React.Fragment key={i}>
+                <svg className="h-8 opacity-60 hover:opacity-100 transition-opacity flex-shrink-0" viewBox="0 0 120 30" fill="currentColor">
+                  <text x="0" y="20" fontSize="20" fontWeight="bold" fill="#FF5A00">Google</text>
+                </svg>
+                <div className="w-px h-6 bg-gray-200 flex-shrink-0" />
+                <svg className="h-8 opacity-60 hover:opacity-100 transition-opacity flex-shrink-0" viewBox="0 0 120 30" fill="currentColor">
+                  <text x="0" y="20" fontSize="20" fontWeight="bold" fill="#1DB954">Spotify</text>
+                </svg>
+                <div className="w-px h-6 bg-gray-200 flex-shrink-0" />
+                <svg className="h-8 opacity-60 hover:opacity-100 transition-opacity flex-shrink-0" viewBox="0 0 120 30" fill="currentColor">
+                  <text x="0" y="20" fontSize="20" fontWeight="bold" fill="#2D8CFF">Zoom</text>
+                </svg>
+                <div className="w-px h-6 bg-gray-200 flex-shrink-0" />
+                <svg className="h-8 opacity-60 hover:opacity-100 transition-opacity flex-shrink-0" viewBox="0 0 120 30" fill="currentColor">
+                  <text x="0" y="20" fontSize="20" fontWeight="bold" fill="#FF9900">Amazon</text>
+                </svg>
+                <div className="w-px h-6 bg-gray-200 flex-shrink-0" />
+                <svg className="h-8 opacity-60 hover:opacity-100 transition-opacity flex-shrink-0" viewBox="0 0 120 30" fill="currentColor">
+                  <text x="0" y="20" fontSize="20" fontWeight="bold" fill="#FF0000">Adobe</text>
+                </svg>
+                <div className="w-px h-6 bg-gray-200 flex-shrink-0" />
+                <svg className="h-8 opacity-60 hover:opacity-100 transition-opacity flex-shrink-0" viewBox="0 0 120 30" fill="currentColor">
+                  <text x="0" y="20" fontSize="20" fontWeight="bold" fill="#000000">Notion</text>
+                </svg>
+                <div className="w-px h-6 bg-gray-200 flex-shrink-0" />
+                <svg className="h-8 opacity-60 hover:opacity-100 transition-opacity flex-shrink-0" viewBox="0 0 120 30" fill="currentColor">
+                  <text x="0" y="20" fontSize="20" fontWeight="bold" fill="#E50914">Netflix</text>
+                </svg>
+                {i === 0 && <div className="w-8 flex-shrink-0" />}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
+        <style>{`
+          @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .animate-scroll {
+            animation: scroll 20s linear infinite;
+          }
+          .animate-scroll:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
       </section>
     </section>
   );

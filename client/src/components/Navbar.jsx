@@ -74,6 +74,14 @@ export default function Navbar() {
 
         {/* Auth Buttons / Profile */}
         <div className="flex items-center space-x-2">
+          <button
+            onClick={() => navigate('/join-admin')}
+            className="hidden sm:flex items-center gap-1 px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 transition-all shadow-md hover:shadow-lg"
+          >
+            <span className="text-base">⚡</span>
+            Join
+          </button>
+          
           {user ? (
             <ProfileDropdown />
           ) : (
@@ -112,6 +120,13 @@ export default function Navbar() {
           />
           <div className="fixed top-[88px] right-0 w-64 bg-white shadow-lg z-50 lg:hidden">
             <nav className="flex flex-col p-4 space-y-2">
+              <button
+                onClick={() => { navigate('/join-admin'); setMobileMenuOpen(false); }}
+                className="flex items-center gap-2 px-3 py-2 rounded bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold hover:from-orange-600 hover:to-red-600 transition-all"
+              >
+                <span>⚡</span>
+                Join as Admin
+              </button>
               <a
                 href="/"
                 className={`px-3 py-2 rounded ${location.pathname === '/' ? 'text-black font-semibold bg-gray-100' : 'text-black hover:bg-gray-50'}`}

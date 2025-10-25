@@ -10,7 +10,6 @@ const RecordingsPage = () => {
   const [recordings, setRecordings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -75,29 +74,14 @@ const RecordingsPage = () => {
 
   return (
     <div className="flex bg-gray-50 h-screen overflow-hidden">
-      {/* Desktop Sidebar */}
-      <motion.div 
-        animate={{ width: sidebarCollapsed ? '5rem' : '18rem' }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="hidden lg:block sidebar-scroll sticky top-0 h-screen overflow-y-auto bg-white shadow-lg flex-shrink-0"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
-        <Sidebar collapsed={sidebarCollapsed} />
-      </motion.div>
-
-      {/* Mobile Sidebar */}
-      <div className="lg:hidden">
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      </div>
+      <Sidebar 
+        collapsed={sidebarCollapsed} 
+        isOpen={sidebarCollapsed} 
+        onClose={() => setSidebarCollapsed(false)} 
+      />
 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <Header onMenuClick={() => {
-          if (window.innerWidth >= 1024) {
-            setSidebarCollapsed(!sidebarCollapsed);
-          } else {
-            setSidebarOpen(true);
-          }
-        }} />
+        <Header onMenuClick={() => setSidebarCollapsed(!sidebarCollapsed)} />
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {loading ? (
