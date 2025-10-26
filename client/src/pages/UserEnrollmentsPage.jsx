@@ -79,7 +79,6 @@ const UserEnrollmentsPage = () => {
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [users, setUsers] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedEnrollments, setSelectedEnrollments] = useState([]);
@@ -102,24 +101,18 @@ const UserEnrollmentsPage = () => {
   };
 
   useEffect(() => {
-    if (!currentCourseId) {
-      showNotification(
-        "No course selected. Please select a course first.",
-        "warning"
-      );
-      return;
+    if (currentCourseId) {
+      fetchUserEnrollments();
     }
-    fetchUserEnrollments();
-    fetchUsers();
   }, [filters, pagination.page, currentCourseId]);
 
   const fetchUserEnrollments = async () => {
     try {
       dispatch(setLoading(true));
       const params = {
+        ...filters,
         enrolleeType: "user",
         courseId: currentCourseId, // Filter by current course
-        ...filters,
         page: pagination.page,
         limit: pagination.limit,
       };
@@ -135,14 +128,7 @@ const UserEnrollmentsPage = () => {
     }
   };
 
-  const fetchUsers = async () => {
-    try {
-      const response = await userAPI.getUsers();
-      setUsers(response.data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
+
 
   const handleCreateEnrollment = () => {
     if (!currentCourseId) {

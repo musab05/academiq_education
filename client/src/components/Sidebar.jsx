@@ -577,7 +577,7 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
           finalLink = `/course-overview/${currentCourse.slug}`;
         }
       }
-      if ((link.includes("/course-overview/enrollments/") || link.includes("/course-overview/reports/") || link.includes("/course-overview/settings/") || link.includes("/course-overview/assignments")) && currentCourseId) {
+      if ((link.includes("/course-overview/enrollments/") || link.includes("/course-overview/reports/") || link.includes("/course-overview/settings/") || link.includes("/course-overview/assignments") || link.includes("/course-overview/resources")) && currentCourseId) {
         const currentCourse = courses.find((c) => c._id === currentCourseId);
         if (currentCourse) {
           finalLink = link.replace(

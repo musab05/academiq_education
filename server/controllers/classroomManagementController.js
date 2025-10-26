@@ -5,8 +5,12 @@ export const getClassrooms = async (req, res) => {
     const currentUser = req.user;
     let query = { isActive: true };
     
-    if (currentUser.role === 'admin' && currentUser.institute) {
-      query.institute = currentUser.institute;
+    // Superadmin sees all classrooms
+    if (currentUser.role === 'superadmin') {
+      // No additional filters
+    } else {
+      // All other users only see classrooms they created
+      query.instructor = currentUser._id;
     }
     
     const classrooms = await Classroom.find(query)

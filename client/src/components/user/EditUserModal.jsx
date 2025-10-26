@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, Mail } from 'lucide-react';
+import { X, User, Mail, Lock } from 'lucide-react';
 import RoleSelector from './RoleSelector';
 
 const EditUserModal = ({ isOpen, onClose, onUpdateUser, loading, availableRoles, user }) => {
@@ -7,7 +7,8 @@ const EditUserModal = ({ isOpen, onClose, onUpdateUser, loading, availableRoles,
     firstName: '',
     lastName: '',
     email: '',
-    role: ''
+    role: '',
+    password: ''
   });
 
   useEffect(() => {
@@ -16,14 +17,19 @@ const EditUserModal = ({ isOpen, onClose, onUpdateUser, loading, availableRoles,
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         email: user.email || '',
-        role: user.role || ''
+        role: user.role || '',
+        password: ''
       });
     }
   }, [user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await onUpdateUser(user._id, formData);
+    const updateData = { ...formData };
+    if (!updateData.password) {
+      delete updateData.password;
+    }
+    await onUpdateUser(user._id, updateData);
   };
 
   if (!isOpen || !user) return null;
@@ -97,6 +103,23 @@ const EditUserModal = ({ isOpen, onClose, onUpdateUser, loading, availableRoles,
               onSelect={(role) => setFormData(prev => ({ ...prev, role }))}
               availableRoles={availableRoles}
             />
+          </div>
+
+          <div>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+              New Password
+            </label>
+            <div className="relative">
+              <Lock className="w-4 h-4 absolute left-3 top-2.5 sm:top-3.5 text-gray-400" />
+              <input
+                type="password"
+                value={formData.password}
+                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                placeholder="Leave blank to keep current password"
+                className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Only fill this if you want to change the password</p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 pt-4">

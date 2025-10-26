@@ -88,6 +88,7 @@ export const getEnrollments = async (req, res) => {
 
     // Execute query with manual pagination
     const enrollments = await Enrollment.find(filter)
+      .populate("course", "title slug thumbnail categories level duration")
       .populate(populateArray)
       .populate("teamMemberProgress.user", "firstName lastName email")
       .sort({ enrolledAt: -1 })
@@ -347,9 +348,18 @@ export const getUserEnrollments = async (req, res) => {
     const { userId } = req.params;
     const { status, page = 1, limit = 10 } = req.query;
 
+    // Find user by _id or uuid
+    const user = await User.findById(userId).catch(() => null) || await User.findOne({ uuid: userId });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "User not found",
+      });
+    }
+
     const filter = {
       enrolleeType: "user",
-      enrolleeId: userId,
+      enrolleeId: user._id,
       isActive: true,
     };
 

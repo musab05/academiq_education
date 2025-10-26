@@ -108,7 +108,7 @@ const AssignmentSubmissionsPage = () => {
                   <td className="px-3 sm:px-4 md:px-6 py-4 whitespace-nowrap text-sm">
                     <div className="flex items-center gap-1.5 sm:gap-2">
                       <a
-                        href={submission.fileUrl}
+                        href={`http://localhost:3000/api/assignment-lessons/${lessonId}/file/${submission.fileName}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="tap-target text-blue-600 hover:text-blue-800 p-1"
@@ -117,7 +117,7 @@ const AssignmentSubmissionsPage = () => {
                         <FiEye className="w-4 h-4 sm:w-5 sm:h-5" />
                       </a>
                       <a
-                        href={submission.fileUrl}
+                        href={`http://localhost:3000/api/assignment-lessons/${lessonId}/file/${submission.fileName}`}
                         download
                         className="tap-target text-green-600 hover:text-green-800 p-1"
                         title="Download"

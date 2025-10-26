@@ -135,7 +135,7 @@ const CourseResourcesPage = () => {
 
   return (
     <div className="flex bg-gray-50 h-screen overflow-hidden">
-      <Sidebar collapsed={sidebarCollapsed} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar collapsed={collapsed} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <Header mode="course-overview" title="Course Resources" onMenuClick={() => { setCollapsed(!collapsed); setSidebarOpen(true); }} />

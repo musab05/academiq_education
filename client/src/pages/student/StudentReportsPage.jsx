@@ -19,13 +19,16 @@ const StudentReportsPage = () => {
   const fetchStudentReports = async () => {
     try {
       setLoading(true);
-      if (!user?._id) {
+      const userId = user?.uuid;
+      
+      if (!userId) {
         setReportData({ stats: { totalEnrollments: 0, completedCourses: 0, inProgressCourses: 0, avgProgress: 0 }, enrollments: [] });
         setLoading(false);
         return;
       }
-      const response = await enrollmentAPI.getUserEnrollments(user._id);
-      const enrollments = response.data || [];
+      
+      const response = await enrollmentAPI.getUserEnrollments(userId, { limit: 100 });
+      const enrollments = response.data?.data || [];
       
       const stats = {
         totalEnrollments: enrollments.length,
@@ -134,38 +137,46 @@ const StudentReportsPage = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {enrollments.map((enrollment) => (
-                        <tr key={enrollment._id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-3 sm:px-6 py-4 sm:py-5">
-                            <div className="font-semibold text-gray-900 text-sm sm:text-base">{enrollment.course?.title}</div>
-                          </td>
-                          <td className="px-3 sm:px-6 py-4 sm:py-5">
-                            <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold ${
-                              enrollment.status === 'completed' ? 'bg-green-100 text-green-700' :
-                              enrollment.status === 'active' ? 'bg-blue-100 text-blue-700' :
-                              'bg-gray-100 text-gray-700'
-                            }`}>
-                              {enrollment.status}
-                            </span>
-                          </td>
-                          <td className="px-3 sm:px-6 py-4 sm:py-5">
-                            <div className="flex items-center">
-                              <div className="w-20 sm:w-32 bg-gray-200 rounded-full h-2 sm:h-2.5 mr-2 sm:mr-3">
-                                <div
-                                  className="bg-gradient-to-r from-orange-500 to-red-500 h-2 sm:h-2.5 rounded-full transition-all"
-                                  style={{ width: `${enrollment.progress || 0}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-xs sm:text-sm font-semibold text-gray-700">{enrollment.progress || 0}%</span>
-                            </div>
-                          </td>
-                          <td className="hidden md:table-cell px-3 sm:px-6 py-4 sm:py-5">
-                            <span className="text-sm text-gray-600">
-                              {new Date(enrollment.enrolledAt).toLocaleDateString()}
-                            </span>
+                      {enrollments.length === 0 ? (
+                        <tr>
+                          <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
+                            No enrollments found. Enroll in courses to see your progress here.
                           </td>
                         </tr>
-                      ))}
+                      ) : (
+                        enrollments.map((enrollment) => (
+                          <tr key={enrollment._id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-3 sm:px-6 py-4 sm:py-5">
+                              <div className="font-semibold text-gray-900 text-sm sm:text-base">{enrollment.course?.title || 'Unknown Course'}</div>
+                            </td>
+                            <td className="px-3 sm:px-6 py-4 sm:py-5">
+                              <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold ${
+                                enrollment.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                enrollment.status === 'active' ? 'bg-blue-100 text-blue-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {enrollment.status}
+                              </span>
+                            </td>
+                            <td className="px-3 sm:px-6 py-4 sm:py-5">
+                              <div className="flex items-center">
+                                <div className="w-20 sm:w-32 bg-gray-200 rounded-full h-2 sm:h-2.5 mr-2 sm:mr-3">
+                                  <div
+                                    className="bg-gradient-to-r from-orange-500 to-red-500 h-2 sm:h-2.5 rounded-full transition-all"
+                                    style={{ width: `${enrollment.progress || 0}%` }}
+                                  ></div>
+                                </div>
+                                <span className="text-xs sm:text-sm font-semibold text-gray-700">{enrollment.progress || 0}%</span>
+                              </div>
+                            </td>
+                            <td className="hidden md:table-cell px-3 sm:px-6 py-4 sm:py-5">
+                              <span className="text-sm text-gray-600">
+                                {new Date(enrollment.enrolledAt).toLocaleDateString()}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>

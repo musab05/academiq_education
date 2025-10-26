@@ -179,7 +179,7 @@ const TeamManagementPage = () => {
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <Header onMenuClick={() => { setSidebarCollapsed(!sidebarCollapsed); setSidebarOpen(true); }} />
-        <div className="flex-1 p-4 sm:p-6">
+        <div className="overflow-y-auto flex-1 p-4 sm:p-6">
           <div className="max-w-7xl mx-auto">
             {isStudent && (
               <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg sm:rounded-xl p-4 sm:p-8 mb-4 sm:mb-6 text-white">

@@ -70,7 +70,20 @@ const AssignmentLessonViewer = ({ lesson, onProgressUpdate }) => {
 
   const handleSubmit = async () => {
     try {
-      const fileNames = selectedFiles.map(f => f.name).join(', ');
+      if (selectedFiles.length === 0) return;
+      
+      // Upload files first
+      const uploadedFiles = [];
+      for (const file of selectedFiles) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('lessonId', lesson._id);
+        const uploadResponse = await lessonAPI.uploadAssignmentFile(formData);
+        uploadedFiles.push(uploadResponse.data.filename);
+      }
+      
+      // Submit with actual filenames
+      const fileNames = uploadedFiles.join(', ');
       await progressAPI.submitAssignment(lesson._id, fileNames);
       showNotification({ type: 'success', message: 'Assignment submitted successfully!' });
       setSelectedFiles([]);
@@ -128,13 +141,21 @@ const AssignmentLessonViewer = ({ lesson, onProgressUpdate }) => {
             {assignmentProgress?.submittedFile && (
               <p className="text-sm text-gray-600 mt-1">Files: {assignmentProgress.submittedFile}</p>
             )}
+            {assignmentProgress?.marks !== undefined && assignmentProgress?.marks !== null && (
+              <div className="mt-2">
+                <p className="text-sm font-semibold text-gray-700">Grade: {assignmentProgress.marks}/{lessonData?.maxPoints || 100}</p>
+                {assignmentProgress?.feedback && (
+                  <p className="text-sm text-gray-600 mt-1">Feedback: {assignmentProgress.feedback}</p>
+                )}
+              </div>
+            )}
           </div>
           <div className="text-right">
             <div className={`text-2xl font-bold ${
-              assignmentProgress?.isCompleted ? 'text-green-600' : 'text-orange-600'
-            }`}>{lessonData?.currentScore || 0}/{lessonData?.maxPoints || 100}</div>
+              assignmentProgress?.marks !== undefined ? 'text-blue-600' : assignmentProgress?.isCompleted ? 'text-green-600' : 'text-orange-600'
+            }`}>{assignmentProgress?.marks !== undefined ? assignmentProgress.marks : 0}/{lessonData?.maxPoints || 100}</div>
             <div className={`text-sm ${
-              assignmentProgress?.isCompleted ? 'text-green-600' : 'text-orange-600'
+              assignmentProgress?.marks !== undefined ? 'text-blue-600' : assignmentProgress?.isCompleted ? 'text-green-600' : 'text-orange-600'
             }`}>Points</div>
           </div>
         </div>

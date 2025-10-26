@@ -487,10 +487,12 @@ export default function ShowCoursePage() {
                       </div>
                       <div>
                         <div className="font-medium text-xs sm:text-sm md:text-base">{course.instructor.firstName} {course.instructor.lastName}</div>
-                        <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1">{course.instructor.role || 'Course Creator'} • {course.instructor.email}</div>
-                        <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-600">
-                          {course.instructor.bio || 'Experienced educator passionate about creating engaging learning experiences.'}
-                        </p>
+                        <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1">{course.instructor.email}</div>
+                        {course.instructor.bio && (
+                          <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-600">
+                            {course.instructor.bio}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>

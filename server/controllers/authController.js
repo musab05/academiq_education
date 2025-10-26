@@ -182,6 +182,7 @@ export const signup = async (req, res) => {
     res.status(201).json({
       token,
       user: {
+        _id: newUser._id,
         uuid: newUser.uuid,
         firstName: newUser.firstName,
         lastName: newUser.lastName,
@@ -242,6 +243,7 @@ export const signin = async (req, res) => {
     res.status(200).json({
       token,
       user: {
+        _id: user._id,
         uuid: user.uuid,
         firstName: user.firstName,
         lastName: user.lastName,

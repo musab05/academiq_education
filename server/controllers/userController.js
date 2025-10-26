@@ -40,9 +40,12 @@ export const getUsers = async (req, res) => {
 
     let query = {};
     
-    // Institute filtering for admins
-    if (currentUser.role === 'admin' && currentUser.institute) {
-      query.institute = currentUser.institute;
+    // Institute filtering for admins - show users from their institute OR users they created
+    if (currentUser.role === 'admin') {
+      query.$or = [
+        { institute: currentUser.institute },
+        { createdBy: currentUser._id }
+      ];
     }
     
     if (role && allowedRoles[currentUser.role].includes(role)) {
@@ -96,18 +99,15 @@ export const createUser = async (req, res) => {
       return res.status(400).json({ error: 'User already exists' });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
     const user = new User({
       firstName,
       lastName,
       username: email, // Use email as username
       email,
-      password: hashedPassword,
+      password,
       role,
-      createdBy: currentUser._id
+      createdBy: currentUser._id,
+      institute: currentUser.institute || null
     });
 
     await user.save();
@@ -126,7 +126,7 @@ export const createUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { firstName, lastName, email, role, department } = req.body;
+    const { firstName, lastName, email, role, department, password } = req.body;
     const currentUser = req.user;
 
     const user = await User.findById(id).populate('createdBy', 'role');
@@ -170,6 +170,11 @@ export const updateUser = async (req, res) => {
     // Allow department change
     if (department !== undefined) {
       user.department = department || null;
+    }
+
+    // Allow password change for admin and superadmin
+    if (password && (currentUser.role === 'admin' || currentUser.role === 'superadmin')) {
+      user.password = password;
     }
 
     await user.save();
@@ -409,12 +414,9 @@ export const changePassword = async (req, res) => {
       return res.status(400).json({ error: 'Current password is incorrect' });
     }
     
-    // Hash new password
-    const salt = await bcrypt.genSalt(10);
-    const hashedNewPassword = await bcrypt.hash(newPassword, salt);
-    
-    // Update password
-    await User.findByIdAndUpdate(userId, { password: hashedNewPassword });
+    // Update password (will be hashed by pre-save hook)
+    user.password = newPassword;
+    await user.save();
     
     res.json({ message: 'Password changed successfully' });
   } catch (error) {

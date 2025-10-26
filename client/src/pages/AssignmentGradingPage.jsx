@@ -126,7 +126,7 @@ const AssignmentGradingPage = () => {
                           </div>
                         </td>
                         <td className="hidden lg:table-cell px-6 lg:px-8 py-4 sm:py-5">
-                          <a href={sub.fileUrl} className="flex items-center gap-2 text-sm text-orange-600 hover:text-orange-700 font-medium">
+                          <a href={`http://localhost:3000/api/assignment-lessons/${lessonId}/file/${sub.fileName}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-orange-600 hover:text-orange-700 font-medium">
                             <FileText className="w-4 h-4" />
                             <span className="truncate">{sub.fileName || 'Download'}</span>
                           </a>
@@ -189,7 +189,7 @@ const AssignmentGradingPage = () => {
 
             <div className="mb-4 sm:mb-6">
               <div className="text-xs sm:text-sm text-gray-600 mb-1">Submitted File</div>
-              <a href={selectedSubmission.fileUrl} className="text-orange-600 hover:text-orange-700 flex items-center gap-2 font-medium text-sm sm:text-base">
+              <a href={`http://localhost:3000/api/assignment-lessons/${lessonId}/file/${selectedSubmission.fileName}`} target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:text-orange-700 flex items-center gap-2 font-medium text-sm sm:text-base">
                 <Download className="w-4 h-4 flex-shrink-0" />
                 <span className="truncate">{selectedSubmission.fileName || 'Download Submission'}</span>
               </a>
