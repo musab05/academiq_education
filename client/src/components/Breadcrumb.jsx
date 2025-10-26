@@ -192,21 +192,25 @@ const Breadcrumb = () => {
     } else if (path === "/browse-classrooms") {
       breadcrumbs.push({ name: "Browse Classrooms", path: "/browse-classrooms" });
     } else if (path.match(/\/classroom\/[^/]+$/)) {
-      breadcrumbs.push({ name: "My Classrooms", path: "/my-classrooms" });
+      const basePath = user?.role === 'student' ? "/my-classrooms" : "/classrooms";
+      breadcrumbs.push({ name: user?.role === 'student' ? "My Classrooms" : "Classrooms", path: basePath });
       breadcrumbs.push({ name: "Classroom Details", path: path });
     } else if (path.match(/\/classroom\/[^/]+\/sessions$/)) {
       const classroomPath = path.substring(0, path.lastIndexOf('/sessions'));
-      breadcrumbs.push({ name: "My Classrooms", path: "/my-classrooms" });
+      const basePath = user?.role === 'student' ? "/my-classrooms" : "/classrooms";
+      breadcrumbs.push({ name: user?.role === 'student' ? "My Classrooms" : "Classrooms", path: basePath });
       breadcrumbs.push({ name: "Classroom Details", path: classroomPath });
       breadcrumbs.push({ name: "Sessions", path: path });
     } else if (path.match(/\/classroom\/[^/]+\/enrollments\/students$/)) {
       const classroomPath = path.substring(0, path.lastIndexOf('/enrollments'));
-      breadcrumbs.push({ name: "My Classrooms", path: "/my-classrooms" });
+      const basePath = user?.role === 'student' ? "/my-classrooms" : "/classrooms";
+      breadcrumbs.push({ name: user?.role === 'student' ? "My Classrooms" : "Classrooms", path: basePath });
       breadcrumbs.push({ name: "Classroom Details", path: classroomPath });
       breadcrumbs.push({ name: "Student Enrollments", path: path });
     } else if (path.match(/\/classroom\/[^/]+\/enrollments\/teams$/)) {
       const classroomPath = path.substring(0, path.lastIndexOf('/enrollments'));
-      breadcrumbs.push({ name: "My Classrooms", path: "/my-classrooms" });
+      const basePath = user?.role === 'student' ? "/my-classrooms" : "/classrooms";
+      breadcrumbs.push({ name: user?.role === 'student' ? "My Classrooms" : "Classrooms", path: basePath });
       breadcrumbs.push({ name: "Classroom Details", path: classroomPath });
       breadcrumbs.push({ name: "Team Enrollments", path: path });
     } else if (path.match(/\/classroom\/[^/]+\/session\/[^/]+\/attendance$/)) {
@@ -214,21 +218,25 @@ const Breadcrumb = () => {
       const classroomId = parts[2];
       const classroomPath = `/classroom/${classroomId}`;
       const attendancePath = `/classroom/${classroomId}/reports/attendance`;
-      breadcrumbs.push({ name: "My Classrooms", path: "/my-classrooms" });
+      const basePath = user?.role === 'student' ? "/my-classrooms" : "/classrooms";
+      breadcrumbs.push({ name: user?.role === 'student' ? "My Classrooms" : "Classrooms", path: basePath });
       breadcrumbs.push({ name: "Classroom Details", path: classroomPath });
       breadcrumbs.push({ name: "Attendance Report", path: attendancePath });
       breadcrumbs.push({ name: "Session Attendance", path: path });
     } else if (path.match(/\/sessions\/[^/]+\/attendance$/)) {
-      breadcrumbs.push({ name: "My Classrooms", path: "/my-classrooms" });
+      const basePath = user?.role === 'student' ? "/my-classrooms" : "/classrooms";
+      breadcrumbs.push({ name: user?.role === 'student' ? "My Classrooms" : "Classrooms", path: basePath });
       breadcrumbs.push({ name: "Session Attendance", path: path });
     } else if (path.match(/\/classroom\/[^/]+\/reports\/attendance$/)) {
       const classroomPath = path.substring(0, path.lastIndexOf('/reports'));
-      breadcrumbs.push({ name: "My Classrooms", path: "/my-classrooms" });
+      const basePath = user?.role === 'student' ? "/my-classrooms" : "/classrooms";
+      breadcrumbs.push({ name: user?.role === 'student' ? "My Classrooms" : "Classrooms", path: basePath });
       breadcrumbs.push({ name: "Classroom Details", path: classroomPath });
       breadcrumbs.push({ name: "Attendance Report", path: path });
     } else if (path.match(/\/classroom\/[^/]+\/reports\/engagement$/)) {
       const classroomPath = path.substring(0, path.lastIndexOf('/reports'));
-      breadcrumbs.push({ name: "My Classrooms", path: "/my-classrooms" });
+      const basePath = user?.role === 'student' ? "/my-classrooms" : "/classrooms";
+      breadcrumbs.push({ name: user?.role === 'student' ? "My Classrooms" : "Classrooms", path: basePath });
       breadcrumbs.push({ name: "Classroom Details", path: classroomPath });
       breadcrumbs.push({ name: "Engagement Report", path: path });
     } else if (path.match(/\/classroom\/[^/]+\/settings$/)) {
@@ -238,18 +246,22 @@ const Breadcrumb = () => {
       breadcrumbs.push({ name: "Classroom Details", path: classroomPath });
       breadcrumbs.push({ name: "Settings", path: path });
     } else if (path.match(/\/classrooms\/[^/]+\/live$/)) {
-      breadcrumbs.push({ name: "My Classrooms", path: "/my-classrooms" });
+      const basePath = user?.role === 'student' ? "/my-classrooms" : "/classrooms";
+      breadcrumbs.push({ name: user?.role === 'student' ? "My Classrooms" : "Classrooms", path: basePath });
       breadcrumbs.push({ name: "Live Session", path: path });
     } else if (path.match(/\/classroom\/[^/]+\/recordings$/)) {
       const classroomPath = path.substring(0, path.lastIndexOf('/recordings'));
-      breadcrumbs.push({ name: "My Classrooms", path: "/my-classrooms" });
+      const basePath = user?.role === 'student' ? "/my-classrooms" : "/classrooms";
+      breadcrumbs.push({ name: user?.role === 'student' ? "My Classrooms" : "Classrooms", path: basePath });
       breadcrumbs.push({ name: "Classroom Details", path: classroomPath });
       breadcrumbs.push({ name: "Recordings", path: path });
     } else if (path.match(/\/classrooms\/[^/]+$/) && !path.match(/\/classrooms$/)) {
-      breadcrumbs.push({ name: "My Classrooms", path: "/my-classrooms" });
+      const basePath = user?.role === 'student' ? "/my-classrooms" : "/classrooms";
+      breadcrumbs.push({ name: user?.role === 'student' ? "My Classrooms" : "Classrooms", path: basePath });
       breadcrumbs.push({ name: "Session Details", path: path });
     } else if (path === "/recordings") {
-      breadcrumbs.push({ name: "My Classrooms", path: "/my-classrooms" });
+      const basePath = user?.role === 'student' ? "/my-classrooms" : "/classrooms";
+      breadcrumbs.push({ name: user?.role === 'student' ? "My Classrooms" : "Classrooms", path: basePath });
       breadcrumbs.push({ name: "Recordings", path: "/recordings" });
     } else if (path.match(/\/teams\/[^/]+\/recordings$/)) {
       const teamPath = path.substring(0, path.lastIndexOf('/recordings'));

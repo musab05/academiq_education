@@ -33,6 +33,16 @@ const ClassroomSessionsPage = () => {
     }
   };
 
+  const getSessionStatus = (session) => {
+    const now = new Date();
+    const startTime = new Date(session.startTime);
+    const endTime = new Date(session.endTime);
+    
+    if (now < startTime) return 'upcoming';
+    if (now >= startTime && now <= endTime) return 'live';
+    return 'ended';
+  };
+
   const isInstructor = currentUser?.role !== 'student';
 
   return (
@@ -71,50 +81,57 @@ const ClassroomSessionsPage = () => {
               </div>
             ) : (
               <div className="grid gap-3 sm:gap-4">
-                {sessions.map((session) => (
-                  <div
-                    key={session._id}
-                    onClick={() => navigate(`/classrooms/${session._id}`)}
-                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 hover:border-orange-500 cursor-pointer transition-all"
-                  >
-                    <div className="flex flex-col sm:flex-row items-start gap-3 sm:justify-between">
-                      <div className="flex-1 w-full sm:w-auto min-w-0">
-                        <div className="flex items-center gap-2 sm:gap-3 mb-2">
-                          <Video className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 flex-shrink-0" />
-                          <h3 className="font-semibold text-gray-900 text-base sm:text-lg truncate">{session.title}</h3>
+                {sessions.map((session) => {
+                  const status = getSessionStatus(session);
+                  const isEnded = status === 'ended';
+                  
+                  return (
+                    <div
+                      key={session._id}
+                      onClick={() => !isEnded && navigate(`/classrooms/${session._id}`)}
+                      className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 transition-all ${
+                        isEnded ? 'opacity-60 cursor-not-allowed' : 'hover:border-orange-500 cursor-pointer'
+                      }`}
+                    >
+                      <div className="flex flex-col sm:flex-row items-start gap-3 sm:justify-between">
+                        <div className="flex-1 w-full sm:w-auto min-w-0">
+                          <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                            <Video className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 flex-shrink-0" />
+                            <h3 className="font-semibold text-gray-900 text-base sm:text-lg truncate">{session.title}</h3>
+                          </div>
+                          <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">{session.description}</p>
+                          <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-500">
+                            <div className="flex items-center gap-1.5 sm:gap-2">
+                              <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                              <span>{new Date(session.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 sm:gap-2">
+                              <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                              <span>{new Date(session.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                            <div 
+                              className="tap-target flex items-center gap-1.5 sm:gap-2 cursor-pointer hover:text-orange-600"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/sessions/${session._id}/attendance`);
+                              }}
+                            >
+                              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                              <span>{session.attendance?.filter(a => !a.leaveTime).length || 0} / {session.maxParticipants}</span>
+                            </div>
+                          </div>
                         </div>
-                        <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">{session.description}</p>
-                        <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-500">
-                          <div className="flex items-center gap-1.5 sm:gap-2">
-                            <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                            <span>{new Date(session.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 sm:gap-2">
-                            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                            <span>{new Date(session.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                          </div>
-                          <div 
-                            className="tap-target flex items-center gap-1.5 sm:gap-2 cursor-pointer hover:text-orange-600"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/sessions/${session._id}/attendance`);
-                            }}
-                          >
-                            <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                            <span>{session.attendance?.filter(a => !a.leaveTime).length || 0} / {session.maxParticipants}</span>
-                          </div>
-                        </div>
+                        <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold flex-shrink-0 self-start ${
+                          status === 'live' ? 'bg-green-100 text-green-800' :
+                          status === 'upcoming' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {status}
+                        </span>
                       </div>
-                      <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold flex-shrink-0 self-start ${
-                        session.status === 'live' ? 'bg-green-100 text-green-800' :
-                        session.status === 'upcoming' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {session.status}
-                      </span>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

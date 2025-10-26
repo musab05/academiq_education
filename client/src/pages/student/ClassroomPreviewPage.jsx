@@ -23,7 +23,7 @@ const ClassroomPreviewPage = () => {
 
   const fetchClassroom = async () => {
     try {
-      const response = await classroomManagementAPI.getAll();
+      const response = await classroomManagementAPI.getAllPublic();
       const found = response.data.find(c => c._id === classroomId);
       setClassroom(found);
       

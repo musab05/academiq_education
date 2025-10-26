@@ -3,6 +3,7 @@ import { authenticate } from '../middleware/auth.js';
 import { requireRole } from '../middleware/rbac.js';
 import {
   getClassrooms,
+  getAllPublicClassrooms,
   createClassroom,
   updateClassroom,
   deleteClassroom,
@@ -16,6 +17,7 @@ import {
 const router = express.Router();
 
 router.get('/', authenticate, getClassrooms);
+router.get('/public', getAllPublicClassrooms);
 router.get('/my-classrooms', authenticate, getMyClassrooms);
 router.post('/', authenticate, requireRole('superadmin', 'admin', 'instructor'), createClassroom);
 router.put('/:classroomId', authenticate, updateClassroom);

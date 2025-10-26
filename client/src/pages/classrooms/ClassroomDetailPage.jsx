@@ -9,6 +9,7 @@ import { classroomManagementAPI, classroomAPI } from '../../services/api';
 import { setCurrentClassroom, setCurrentClassroomData } from '../../store/slices/classroomSlice';
 import CreateSessionModal from './CreateSessionModal';
 import EditSessionModal from './EditSessionModal';
+import { useNotification } from '../../context/NotificationContext';
 
 const ClassroomDetailPage = () => {
   const { classroomId } = useParams();
@@ -25,6 +26,7 @@ const ClassroomDetailPage = () => {
   const [studentAttendance, setStudentAttendance] = useState([]);
   const currentUser = useSelector((state) => state.user.user);
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     // Set the current classroom ID in Redux store immediately
@@ -35,27 +37,19 @@ const ClassroomDetailPage = () => {
 
   const fetchClassroom = async () => {
     try {
-      const response = await classroomManagementAPI.getAll();
+      const response = currentUser?.role === 'student' 
+        ? await classroomManagementAPI.getMyClassrooms()
+        : await classroomManagementAPI.getAll();
       const found = response.data.find(c => c._id === classroomId);
       
-      if (currentUser?.role === 'student') {
-        const isEnrolled = found?.enrolledStudents?.some(s => s._id === currentUser._id || s === currentUser._id);
-        const isTeamEnrolled = found?.enrolledTeams?.some(team => 
-          team.members?.some(m => m.user?._id === currentUser._id || m.user === currentUser._id)
-        );
-        
-        if (!isEnrolled && !isTeamEnrolled) {
-          alert('You are not enrolled in this classroom');
-          navigate('/my-classrooms');
-          return;
-        }
+      if (!found) {
+        showNotification({ type: 'error', message: 'Classroom not found or you do not have access' });
+        navigate(currentUser?.role === 'student' ? '/my-classrooms' : '/classrooms');
+        return;
       }
       
       setClassroom(found);
-      // Also store the full classroom data in Redux
-      if (found) {
-        dispatch(setCurrentClassroomData(found));
-      }
+      dispatch(setCurrentClassroomData(found));
     } catch (error) {
       console.error('Error fetching classroom:', error);
     } finally {
@@ -69,10 +63,13 @@ const ClassroomDetailPage = () => {
       setSessions(response.data);
       
       if (currentUser?.role === 'student') {
+        const now = new Date();
+        
         const attendance = response.data.map(session => {
           const userAttendance = session.attendance?.find(a => 
             a.user?._id === currentUser._id || a.user === currentUser._id
           );
+          const isEnded = new Date(session.endTime) < now;
           return {
             sessionId: session._id,
             sessionTitle: session.title,
@@ -80,7 +77,8 @@ const ClassroomDetailPage = () => {
             attended: !!userAttendance,
             duration: userAttendance?.duration || 0,
             joinTime: userAttendance?.joinTime,
-            leaveTime: userAttendance?.leaveTime
+            leaveTime: userAttendance?.leaveTime,
+            isEnded
           };
         });
         setStudentAttendance(attendance);
@@ -118,10 +116,11 @@ const ClassroomDetailPage = () => {
     setDeleting(sessionId);
     try {
       await classroomAPI.deleteSession(sessionId);
+      showNotification({ type: 'success', message: 'Session deleted successfully' });
       fetchSessions(); // Refresh the sessions list
     } catch (error) {
       console.error('Error deleting session:', error);
-      alert(error.response?.data?.error || 'Failed to delete session');
+      showNotification({ type: 'error', message: error.response?.data?.error || 'Failed to delete session' });
     } finally {
       setDeleting(null);
     }
@@ -146,7 +145,7 @@ const ClassroomDetailPage = () => {
   // Handle session navigation with access control
   const handleSessionClick = (session) => {
     if (isSessionEnded(session)) {
-      alert('This session has ended and is no longer accessible.');
+      showNotification({ type: 'warning', message: 'This session has ended and is no longer accessible' });
       return;
     }
     navigate(`/classrooms/${session._id}`);
@@ -311,6 +310,7 @@ const ClassroomDetailPage = () => {
                           <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 hidden lg:table-cell">Duration</th>
                           <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 hidden xl:table-cell">Join Time</th>
                           <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 hidden xl:table-cell">Leave Time</th>
+                          <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700">Action</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -375,6 +375,18 @@ const ClassroomDetailPage = () => {
                                 })
                               ) : (
                                 <span className="text-gray-400">-</span>
+                              )}
+                            </td>
+                            <td className="py-3 sm:py-4 px-2 sm:px-4">
+                              {!attendance.isEnded ? (
+                                <button
+                                  onClick={() => navigate(`/classroom/${classroomId}/session/${attendance.sessionId}`)}
+                                  className="tap-target px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-xs font-medium"
+                                >
+                                  View
+                                </button>
+                              ) : (
+                                <span className="text-xs text-gray-400">Ended</span>
                               )}
                             </td>
                           </motion.tr>

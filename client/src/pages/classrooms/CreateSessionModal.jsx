@@ -19,9 +19,14 @@ const CreateSessionModal = ({ classroomId, onClose, onSuccess }) => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [minDateTime, setMinDateTime] = useState('');
 
   useEffect(() => {
     fetchCourses();
+    // Set minimum date/time to current time
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    setMinDateTime(now.toISOString().slice(0, 16));
   }, []);
 
   const fetchCourses = async () => {
@@ -119,6 +124,7 @@ const CreateSessionModal = ({ classroomId, onClose, onSuccess }) => {
               <input
                 type="datetime-local"
                 required
+                min={minDateTime}
                 value={formData.startTime}
                 onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
                 className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"
@@ -129,6 +135,7 @@ const CreateSessionModal = ({ classroomId, onClose, onSuccess }) => {
               <input
                 type="datetime-local"
                 required
+                min={formData.startTime || minDateTime}
                 value={formData.endTime}
                 onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
                 className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"

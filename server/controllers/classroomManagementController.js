@@ -27,6 +27,25 @@ export const getClassrooms = async (req, res) => {
   }
 };
 
+export const getAllPublicClassrooms = async (req, res) => {
+  try {
+    const classrooms = await Classroom.find({ 
+      isActive: true,
+      isPrivate: { $ne: true }
+    })
+      .populate('instructor', 'firstName lastName email')
+      .populate('category', 'name')
+      .populate('institute', 'name')
+      .populate('department', 'name')
+      .sort({ createdAt: -1 });
+    
+    res.json(classrooms);
+  } catch (error) {
+    console.error('Error fetching public classrooms:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 export const createClassroom = async (req, res) => {
   try {
     const { title, description, category, department, institute } = req.body;

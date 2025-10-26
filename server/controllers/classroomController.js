@@ -3,8 +3,8 @@ import Classroom from '../models/Classroom.js';
 import Course from '../models/Course.js';
 
 // Helper function to find session by ID excluding deleted ones
-const findActiveSessionById = async (sessionId) => {
-  return await ClassroomSession.findOne({ 
+const findActiveSessionById = (sessionId) => {
+  return ClassroomSession.findOne({ 
     _id: sessionId, 
     isDeleted: { $ne: true } 
   });
@@ -21,7 +21,8 @@ export const getSessionAnalytics = async (req, res) => {
       .populate('attendance.user', 'firstName lastName email')
       .populate('allowedParticipants', 'firstName lastName email')
       .populate('institute', 'name')
-      .populate('department', 'name');
+      .populate('department', 'name')
+      .exec();
     
     if (!session) {
       return res.status(404).json({ error: 'Session not found' });
@@ -81,7 +82,8 @@ export const getSessionById = async (req, res) => {
       .populate('attendance.user', 'firstName lastName email')
       .populate('allowedParticipants', 'firstName lastName email')
       .populate('institute', 'name')
-      .populate('department', 'name');
+      .populate('department', 'name')
+      .exec();
     
     if (!session) {
       return res.status(404).json({ error: 'Session not found' });

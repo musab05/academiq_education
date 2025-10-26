@@ -261,6 +261,7 @@ export const instituteAPI = {
 
 export const classroomManagementAPI = {
   getAll: () => api.get("/api/classroom-management"),
+  getAllPublic: () => api.get("/api/classroom-management/public"),
   getMyClassrooms: () => api.get("/api/classroom-management/my-classrooms"),
   create: (data) => api.post("/api/classroom-management", data),
   update: (id, data) => api.put(`/api/classroom-management/${id}`, data),

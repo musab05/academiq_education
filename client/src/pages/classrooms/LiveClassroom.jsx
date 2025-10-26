@@ -206,14 +206,18 @@ const LiveClassroom = () => {
       const classroomId = session?.classroom?._id || session?.classroom;
       dispatch(clearClassroom());
       if (classroomId) {
-        navigate(`/classrooms/${classroomId}`);
+        if (currentUser?.role === 'student') {
+          navigate(`/classroom/${classroomId}/session/${sessionId}`);
+        } else {
+          navigate(`/classrooms/${sessionId}`);
+        }
       } else {
-        navigate('/classrooms');
+        navigate(currentUser?.role === 'student' ? '/my-classrooms' : '/classrooms');
       }
     } catch (error) {
       console.error('Error leaving session:', error);
       dispatch(clearClassroom());
-      navigate('/classrooms');
+      navigate(currentUser?.role === 'student' ? '/my-classrooms' : '/classrooms');
     }
   };
 

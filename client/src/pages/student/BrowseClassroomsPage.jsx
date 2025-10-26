@@ -37,7 +37,7 @@ const BrowseClassroomsPage = () => {
 
   const fetchAllClassrooms = async () => {
     try {
-      const response = await classroomManagementAPI.getAll();
+      const response = await classroomManagementAPI.getAllPublic();
       setClassrooms(response.data || []);
     } catch (error) {
       console.error('Error fetching classrooms:', error);
@@ -51,11 +51,12 @@ const BrowseClassroomsPage = () => {
   };
 
   const filteredClassrooms = useMemo(() => {
-    return classrooms.filter(classroom =>
-      !debouncedQuery || 
-      classroom.title.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
-      classroom.description?.toLowerCase().includes(debouncedQuery.toLowerCase())
-    );
+    return classrooms.filter(classroom => {
+      // Apply search filter
+      if (!debouncedQuery) return true;
+      return classroom.title.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
+             classroom.description?.toLowerCase().includes(debouncedQuery.toLowerCase());
+    });
   }, [classrooms, debouncedQuery]);
 
   const totalPages = Math.ceil(filteredClassrooms.length / classroomsPerPage);
@@ -64,10 +65,7 @@ const BrowseClassroomsPage = () => {
     return filteredClassrooms.slice(startIndex, startIndex + classroomsPerPage);
   }, [filteredClassrooms, currentPage, classroomsPerPage]);
 
-  const clearFilters = () => {
-    setSearchTerm('');
-    setCurrentPage(1);
-  };
+
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -120,14 +118,8 @@ const BrowseClassroomsPage = () => {
                   <div className="w-24 h-24 mx-auto mb-6 text-gray-300">
                     <Video className="w-full h-full" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No classrooms found</h3>
-                  <p className="text-gray-500 mb-6">No classrooms match your current search</p>
-                  <button
-                    onClick={clearFilters}
-                    className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-                  >
-                    Clear search
-                  </button>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No public classrooms found</h3>
+                  <p className="text-gray-500">No public classrooms match your search</p>
                 </div>
               ) : (
                 <>

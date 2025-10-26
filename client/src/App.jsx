@@ -60,6 +60,7 @@ import StudentClassroomsPage from "./pages/student/StudentClassroomsPage";
 import BrowseCoursesPage from "./pages/student/BrowseCoursesPage";
 import BrowseClassroomsPage from "./pages/student/BrowseClassroomsPage";
 import ClassroomPreviewPage from "./pages/student/ClassroomPreviewPage";
+import StudentSessionPage from "./pages/student/StudentSessionPage";
 import StudentReportsPage from "./pages/student/StudentReportsPage";
 import StudentInstitutePage from "./pages/student/StudentInstitutePage";
 import PlaylistsPage from "./pages/student/PlaylistsPage";
@@ -189,6 +190,7 @@ function AppContent() {
       <Route path="/my-classrooms" element={<ProtectedRoute><StudentClassroomsPage /></ProtectedRoute>} />
       <Route path="/classroom-preview/:classroomId" element={<ProtectedRoute><ClassroomPreviewPage /></ProtectedRoute>} />
       <Route path="/classroom/:classroomId" element={<ProtectedRoute><ClassroomDetailPage /></ProtectedRoute>} />
+      <Route path="/classroom/:classroomId/session/:sessionId" element={<ProtectedRoute><StudentSessionPage /></ProtectedRoute>} />
       <Route path="/classroom/:classroomId/sessions" element={<ProtectedRoute><ClassroomSessionsPage /></ProtectedRoute>} />
       <Route path="/classroom/:classroomId/enrollments/students" element={<ProtectedRoute><ClassroomEnrollmentsPage /></ProtectedRoute>} />
       <Route path="/classroom/:classroomId/enrollments/teams" element={<ProtectedRoute><ClassroomTeamEnrollmentsPage /></ProtectedRoute>} />
