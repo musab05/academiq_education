@@ -297,6 +297,7 @@ const Header = ({
                location.pathname === '/students' ? 'Students' :
                location.pathname === '/teams' ? 'Teams' :
                location.pathname === '/departments' ? 'Departments' :
+               location.pathname === '/institutes' ? 'Institutes' :
                location.pathname === '/certificates' ? 'Certificates' :
                location.pathname === '/events' ? 'Events' :
                location.pathname === '/reports' ? 'Reports' :
