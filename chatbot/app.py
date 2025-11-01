@@ -302,9 +302,18 @@ def generate_questions():
         
         context_info = ""
         actual_topic = prompt
+        key_concepts = []
+        
         if lesson_content and lesson_content.get('processedText'):
-            context_info = f"\n\nBased on this lesson content:\n{lesson_content['processedText'][:2000]}"
-            actual_topic = f"the lesson content above"
+            content_text = lesson_content['processedText']
+            # Extract key concepts using ContentAnalyzer
+            keywords = content_analyzer.extract_keywords(content_text, top_k=10)
+            entities = content_analyzer.extract_entities(content_text)
+            key_concepts = [kw['keyword'] for kw in keywords[:5]] + entities.get('CONCEPT', [])[:5]
+            
+            # Build rich context with actual content snippets
+            context_info = f"\n\nLesson Content Summary:\n{content_text[:3000]}\n\nKey Concepts: {', '.join(key_concepts[:10])}"
+            actual_topic = f"the following lesson content focusing on: {', '.join(key_concepts[:5])}"
         
         existing_q_text = ""
         if existing_questions:
@@ -326,28 +335,38 @@ def generate_questions():
             logger.info(f'Generating questions - Lesson ID: {lesson_id}, Has content: {bool(lesson_content)}')
             if lesson_content:
                 logger.info(f'Using lesson content: {len(lesson_content.get("processedText", ""))} chars')
+                logger.info(f'Key concepts: {key_concepts[:5]}')
             
-            system_prompt = f"""Create {question_count} diverse quiz questions about: {actual_topic}
+            system_prompt = f"""You are an expert quiz creator. Generate {question_count} high-quality quiz questions based on the SPECIFIC content provided below.
+
+IMPORTANT: Questions MUST be based on the actual lesson content, not generic templates.
+
+Topic: {actual_topic}
 Difficulty: {difficulty}
 {type_instruction}{context_info}{existing_q_text}
 
-Use varied question formats:
-- Definitions (What is...?)
-- Applications (How would you...?)
-- Analysis (Why does...?)
-- Comparisons (What's the difference...?)
-- Scenarios (In this situation...?)
-- Evaluations (Which is best...?)
+Create questions that:
+- Test understanding of SPECIFIC concepts from the content
+- Use ACTUAL information, names, terms, and examples from the lesson
+- Are clear, unambiguous, and directly related to the material
+- Have realistic, plausible distractors (wrong options)
 
-Format each question:
-Q: [question text]
+Question format types:
+- Definitions: Test understanding of specific terms from the content
+- Applications: How to apply specific concepts mentioned
+- Analysis: Why specific things work as described in the content
+- Comparisons: Differences between specific concepts in the lesson
+- Scenarios: Real situations using the lesson's specific examples
+
+Format each question EXACTLY like this:
+Q: [specific question based on actual content]
 T: [single-select/multi-select/true-false/fill-blank/essay]
 O: [option1|option2|option3|option4] (skip for fill-blank/essay)
 A: [correct answer(s), use | for multiple]
-E: [brief explanation]
+E: [explanation referencing specific content]
 ---
 
-Make questions practical and engaging."""
+Generate questions NOW based on the actual lesson content provided above."""
             
             response = ollama.chat(
                 model="mistral",
@@ -355,39 +374,94 @@ Make questions practical and engaging."""
             )
             
             content = response["message"]["content"]
+            logger.info(f'=== OLLAMA RAW RESPONSE (first 800 chars) ===\n{content[:800]}\n=== END PREVIEW ===')
+            logger.info(f'Full response length: {len(content)} chars')
             questions_data = []
             
-            # Parse structured format
-            question_blocks = content.split('---')
+            # Parse structured format - split by Q: at start of line
+            question_blocks = re.split(r'\n(?=Q:)', content)
+            # Also try splitting by numbered format or ---
+            if len(question_blocks) <= 1:
+                question_blocks = re.split(r'\n\d+\.\s*Question:', content)
+            if len(question_blocks) <= 1:
+                question_blocks = content.split('---')
+            
+            logger.info(f'Found {len(question_blocks)} question blocks after split')
+            logger.info(f'First block preview: {question_blocks[0][:200] if question_blocks else "none"}')
+            
             for block in question_blocks:
-                if 'Q:' not in block:
+                if not block.strip() or ('Q:' not in block and 'T:' not in block):
                     continue
                     
                 lines = block.strip().split('\n')
                 q_data = {}
+                current_field = None
                 
                 for line in lines:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    
+                    # Extract question type from question line if present
                     if line.startswith('Q:'):
-                        q_data['question'] = line[2:].strip()
-                    elif line.startswith('T:'):
-                        q_type = line[2:].strip().lower()
-                        if q_type in type_distribution:
+                        q_line = line[2:].strip()
+                        # Check if type is in parentheses at end
+                        type_match = re.search(r'\(([^)]+)\)\s*$', q_line)
+                        if type_match:
+                            q_type = type_match.group(1).lower().replace('-', '_')
                             q_data['type'] = q_type
+                            q_line = q_line[:type_match.start()].strip()
+                        q_data['question'] = q_line
+                        current_field = 'question'
+                    elif line.startswith('T:'):
+                        q_type = line[2:].strip().lower().replace('-', '_')
+                        q_data['type'] = q_type
+                        current_field = None
                     elif line.startswith('O:'):
-                        q_data['options'] = [o.strip() for o in line[2:].split('|') if o.strip()]
+                        # Parse options - handle both | separator and multiple O: lines
+                        options_text = line[2:].strip()
+                        if '|' in options_text:
+                            q_data['options'] = [o.strip() for o in options_text.split('|') if o.strip()]
+                            current_field = None
+                        else:
+                            # Multiple O: lines - collect each one
+                            if 'options' not in q_data:
+                                q_data['options'] = []
+                            if options_text:
+                                q_data['options'].append(options_text)
+                            current_field = 'options'
                     elif line.startswith('A:'):
-                        q_data['correctAnswers'] = [a.strip() for a in line[2:].split('|') if a.strip()]
+                        answer_text = line[2:].strip()
+                        if '|' in answer_text:
+                            q_data['correctAnswers'] = [a.strip() for a in answer_text.split('|') if a.strip()]
+                            current_field = None
+                        else:
+                            q_data['correctAnswers'] = [answer_text] if answer_text else []
+                            current_field = 'answer'
                     elif line.startswith('E:'):
                         q_data['explanation'] = line[2:].strip()
+                        current_field = 'explanation'
+                    elif current_field == 'options' and re.match(r'^[A-D]\)', line):
+                        # Multi-line option format: A) option text
+                        q_data['options'].append(line[2:].strip())
+                    elif current_field == 'explanation':
+                        q_data['explanation'] += ' ' + line
+                    elif current_field == 'answer' and line:
+                        if q_data['correctAnswers']:
+                            q_data['correctAnswers'][0] += ' ' + line
                 
                 if q_data.get('question'):
-                    q_data['points'] = 1
+                    q_data['points'] = 2 if q_data.get('type') == 'essay' else 1
                     if not q_data.get('type'):
                         q_data['type'] = question_type if question_type != 'mixed' else 'single-select'
+                    # Normalize type names to use hyphens (model format)
+                    if q_data.get('type'):
+                        q_data['type'] = q_data['type'].replace('_', '-')
                     # Ensure type matches selection if not mixed
                     if question_type != 'mixed' and q_data.get('type') != question_type:
                         q_data['type'] = question_type
                     questions_data.append(q_data)
+                    logger.info(f'Parsed Q{len(questions_data)}: Type={q_data.get("type")}, Options={len(q_data.get("options", []))}, Answers={q_data.get("correctAnswers", [])}')
                     
                 if len(questions_data) >= question_count:
                     break
@@ -444,6 +518,11 @@ Make questions practical and engaging."""
         formatted_questions = []
         for idx, q in enumerate(questions_data):
             q_type = q.get('type', 'single-select')
+            # Normalize type to match model enum (with hyphens)
+            q_type = q_type.replace('_', '-')
+            if q_type not in ['single-select', 'multi-select', 'true-false', 'fill-blank', 'essay']:
+                q_type = 'single-select'
+            
             options = q.get('options', [])
             
             # Handle different question types
@@ -455,11 +534,32 @@ Make questions practical and engaging."""
                 options = ['Option A', 'Option B', 'Option C', 'Option D']
             
             correct_answers = q.get('correctAnswers', [])
-            if not correct_answers:
+            
+            # Match correct answers to actual options
+            if correct_answers and options and q_type not in ['fill-blank', 'essay']:
+                matched_answers = []
+                for answer in correct_answers:
+                    # Try exact match first
+                    if answer in options:
+                        matched_answers.append(answer)
+                    else:
+                        # Try fuzzy match - find option that contains the answer or vice versa
+                        for option in options:
+                            if answer.lower() in option.lower() or option.lower() in answer.lower():
+                                matched_answers.append(option)
+                                break
+                if matched_answers:
+                    correct_answers = matched_answers
+                else:
+                    # Fallback to first option if no match found
+                    correct_answers = [options[0]]
+            elif not correct_answers:
                 if q_type in ['fill-blank', 'essay']:
                     correct_answers = ['']  # Empty for manual grading
                 elif options:
                     correct_answers = [options[0]]
+            
+            explanation = q.get('explanation', '')
             
             formatted_questions.append({
                 'id': str(abs(hash(q['question'] + str(idx))))[-10:],
@@ -468,9 +568,13 @@ Make questions practical and engaging."""
                 'options': options,
                 'correctAnswers': correct_answers,
                 'points': q.get('points', 2 if q_type == 'essay' else 1),
-                'correctFeedback': f"Correct! {q.get('explanation', '')}",
-                'incorrectFeedback': f"Incorrect. {q.get('explanation', 'Please review the material.')}"
+                'correctFeedback': f"Correct! {explanation}" if explanation else "Correct!",
+                'incorrectFeedback': f"Incorrect. {explanation}" if explanation else "Incorrect. Please review the material."
             })
+            
+        logger.info(f'Formatted {len(formatted_questions)} questions for frontend')
+        for i, fq in enumerate(formatted_questions):
+            logger.info(f'Q{i+1}: Type={fq["type"]}, Options={len(fq["options"])}, Answers={fq["correctAnswers"]}')
         
         return jsonify({
             'questions': formatted_questions,
