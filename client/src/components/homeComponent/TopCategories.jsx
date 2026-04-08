@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   Code,
   Camera,
@@ -11,86 +12,174 @@ import {
   BookOpen,
   Atom,
   Network,
-} from 'lucide-react';
+  ArrowRight,
+} from "lucide-react";
 
 const categories = [
-  { title: 'Art & Design', courses: 38, icon: <Brush size={28} /> },
-  { title: 'Development', courses: 38, icon: <Code size={28} /> },
-  { title: 'Communication', courses: 38, icon: <Users size={28} /> },
-  { title: 'Videography', courses: 38, icon: <Video size={28} /> },
-  { title: 'Photography', courses: 38, icon: <Camera size={28} /> },
-  { title: 'Marketing', courses: 38, icon: <BarChart size={28} /> },
-  { title: 'Content Writing', courses: 38, icon: <BookOpen size={28} /> },
-  { title: 'Finance', courses: 38, icon: <Mic size={28} /> },
-  { title: 'Science', courses: 38, icon: <Atom size={28} /> },
-  { title: 'Network', courses: 38, icon: <Network size={28} /> },
+  {
+    title: "Art & Design",
+    courses: 38,
+    icon: <Brush size={24} />,
+    color: "from-pink-500 to-rose-500",
+    bgLight: "bg-pink-50",
+  },
+  {
+    title: "Development",
+    courses: 52,
+    icon: <Code size={24} />,
+    color: "from-blue-500 to-indigo-500",
+    bgLight: "bg-blue-50",
+  },
+  {
+    title: "Communication",
+    courses: 28,
+    icon: <Users size={24} />,
+    color: "from-green-500 to-emerald-500",
+    bgLight: "bg-green-50",
+  },
+  {
+    title: "Videography",
+    courses: 35,
+    icon: <Video size={24} />,
+    color: "from-purple-500 to-violet-500",
+    bgLight: "bg-purple-50",
+  },
+  {
+    title: "Photography",
+    courses: 42,
+    icon: <Camera size={24} />,
+    color: "from-amber-500 to-orange-500",
+    bgLight: "bg-amber-50",
+  },
+  {
+    title: "Marketing",
+    courses: 31,
+    icon: <BarChart size={24} />,
+    color: "from-cyan-500 to-teal-500",
+    bgLight: "bg-cyan-50",
+  },
+  {
+    title: "Content Writing",
+    courses: 24,
+    icon: <BookOpen size={24} />,
+    color: "from-orange-500 to-red-500",
+    bgLight: "bg-orange-50",
+  },
+  {
+    title: "Finance",
+    courses: 29,
+    icon: <Mic size={24} />,
+    color: "from-emerald-500 to-green-500",
+    bgLight: "bg-emerald-50",
+  },
+  {
+    title: "Science",
+    courses: 45,
+    icon: <Atom size={24} />,
+    color: "from-indigo-500 to-purple-500",
+    bgLight: "bg-indigo-50",
+  },
+  {
+    title: "Networking",
+    courses: 33,
+    icon: <Network size={24} />,
+    color: "from-rose-500 to-pink-500",
+    bgLight: "bg-rose-50",
+  },
 ];
 
 export default function TopCategories() {
-  const [selected, setSelected] = useState(null);
-
-  const handleSelect = idx => {
-    setSelected(prev => (prev === idx ? null : idx));
-  };
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+  const navigate = useNavigate();
 
   return (
-    <section className="bg-white py-12 sm:py-16 px-4">
-      <div className="max-w-6xl mx-auto">
+    <section className="bg-gradient-to-b from-white via-orange-50/30 to-white py-16 sm:py-20 px-4 relative overflow-hidden">
+      {/* Background Decorations */}
+      <div className="absolute top-0 left-1/4 w-64 h-64 bg-orange-100/40 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-orange-50/60 rounded-full blur-3xl" />
+
+      <div className="max-w-6xl mx-auto relative">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-10 gap-4">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-black mb-2">
-              Top Categories
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10 sm:mb-14 gap-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <span className="inline-block px-4 py-1.5 bg-orange-100 text-orange-600 text-sm font-semibold rounded-full mb-4">
+              Browse Categories
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
+              Explore Our Top{" "}
+              <span className="text-orange-500">Categories</span>
             </h2>
-            <p className="text-gray-600 text-xs sm:text-sm">
-              Explore our Popular Categories
+            <p className="text-gray-600 max-w-xl">
+              Choose from a wide variety of courses across multiple disciplines
+              and start your learning journey today.
             </p>
-          </div>
-          <button
-            onClick={() => setSelected(null)}
-            className="border border-gray-300 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm hover:bg-gray-100 transition whitespace-nowrap"
+          </motion.div>
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            onClick={() => navigate("/all-courses")}
+            className="group inline-flex items-center gap-2 bg-white border-2 border-gray-200 hover:border-orange-300 px-6 py-3 rounded-xl text-sm font-semibold text-gray-700 hover:text-orange-600 shadow-sm hover:shadow-md transition-all duration-300 whitespace-nowrap"
           >
             All Categories
-          </button>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </motion.button>
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
           {categories.map((cat, idx) => {
-            const isSelected = selected === idx;
+            const isHovered = hoveredIndex === idx;
 
             return (
               <motion.div
                 key={idx}
-                whileHover={{
-                  y: -4,
-                  scale: 1.04,
-                  boxShadow: '0 12px 24px rgba(0,0,0,0.1)',
-                }}
-                animate={{
-                  scale: isSelected ? 1.08 : 1,
-                  background: isSelected
-                    ? 'linear-gradient(135deg, #ffe0b2, #ffcc80)'
-                    : '#ffffff',
-                  boxShadow: isSelected
-                    ? '0px 20px 30px rgba(255, 102, 0, 0.2)'
-                    : '0px 0px 0px rgba(0, 0, 0, 0)',
-                }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                onClick={() => handleSelect(idx)}
-                className={`border rounded-lg sm:rounded-xl px-3 sm:px-6 py-4 sm:py-8 text-center cursor-pointer ${
-                  isSelected ? 'text-orange-600' : 'text-black'
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.05 }}
+                whileHover={{ y: -8 }}
+                onHoverStart={() => setHoveredIndex(idx)}
+                onHoverEnd={() => setHoveredIndex(null)}
+                onClick={() => navigate("/all-courses")}
+                className={`relative group bg-white rounded-2xl p-5 sm:p-6 cursor-pointer border-2 transition-all duration-300 ${
+                  isHovered
+                    ? "border-orange-300 shadow-xl shadow-orange-100/50"
+                    : "border-gray-100 shadow-sm hover:shadow-lg"
                 }`}
               >
+                {/* Icon Container */}
                 <div
-                  className={`flex justify-center mb-2 sm:mb-4 ${
-                    isSelected ? 'text-orange-600' : 'text-orange-500'
+                  className={`inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl mb-4 transition-all duration-300 ${
+                    isHovered
+                      ? `bg-gradient-to-br ${cat.color} text-white shadow-lg`
+                      : `${cat.bgLight} text-gray-700`
                   }`}
                 >
-                  <div className="scale-75 sm:scale-100">{cat.icon}</div>
+                  {cat.icon}
                 </div>
-                <h3 className="font-semibold text-xs sm:text-base mb-1">{cat.title}</h3>
-                <p className="text-xs sm:text-sm text-gray-500">{cat.courses} Courses</p>
+
+                <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-1 line-clamp-1">
+                  {cat.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-500">
+                  {cat.courses} Courses
+                </p>
+
+                {/* Hover Arrow */}
+                <div
+                  className={`absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                    isHovered
+                      ? "opacity-100 bg-orange-100 text-orange-600"
+                      : "opacity-0"
+                  }`}
+                >
+                  <ArrowRight size={16} />
+                </div>
               </motion.div>
             );
           })}

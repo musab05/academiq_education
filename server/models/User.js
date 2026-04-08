@@ -1,9 +1,8 @@
-import mongoose from 'mongoose';
-import { v4 as uuidv4 } from 'uuid';
-import bcrypt from 'bcryptjs';
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
-const generateAvatarUrl = uuid => {
-  return `https://api.dicebear.com/8.x/thumbs/svg?seed=${uuid}`;
+const generateAvatarUrl = (id) => {
+  return `https://api.dicebear.com/8.x/thumbs/svg?seed=${id}`;
 };
 
 const UserSchema = new mongoose.Schema(
@@ -39,13 +38,8 @@ const UserSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['student', 'instructor', 'admin', 'superadmin'],
-      default: 'student',
-    },
-    uuid: {
-      type: String,
-      default: () => uuidv4(),
-      unique: true,
+      enum: ["student", "instructor", "admin", "superadmin"],
+      default: "student",
     },
     isEmailVerified: {
       type: Boolean,
@@ -57,45 +51,45 @@ const UserSchema = new mongoose.Schema(
     },
     profilePicture: {
       type: String,
-      default: '',
+      default: "",
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       default: null, // null means self-registered
     },
     institute: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Institute',
+      ref: "Institute",
       default: null,
     },
     department: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Department',
+      ref: "Department",
       default: null,
     },
     phone: {
       type: String,
-      default: '',
+      default: "",
       trim: true,
     },
     bio: {
       type: String,
-      default: '',
+      default: "",
       maxlength: 500,
     },
     location: {
       type: String,
-      default: '',
+      default: "",
       trim: true,
     },
     timezone: {
       type: String,
-      default: 'UTC',
+      default: "UTC",
     },
     language: {
       type: String,
-      default: 'en',
+      default: "en",
     },
     preferences: {
       emailNotifications: {
@@ -112,8 +106,8 @@ const UserSchema = new mongoose.Schema(
       },
       theme: {
         type: String,
-        enum: ['light', 'dark', 'auto'],
-        default: 'light',
+        enum: ["light", "dark", "auto"],
+        default: "light",
       },
     },
     expertise: {
@@ -121,26 +115,26 @@ const UserSchema = new mongoose.Schema(
       default: [],
     },
     socialLinks: {
-      linkedin: { type: String, default: '' },
-      twitter: { type: String, default: '' },
-      github: { type: String, default: '' },
-      website: { type: String, default: '' },
+      linkedin: { type: String, default: "" },
+      twitter: { type: String, default: "" },
+      github: { type: String, default: "" },
+      website: { type: String, default: "" },
     },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-UserSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+UserSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
 
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
 
     if (!this.profilePicture) {
-      this.profilePicture = generateAvatarUrl(this.uuid);
+      this.profilePicture = generateAvatarUrl(this._id);
     }
 
     next();
@@ -149,5 +143,5 @@ UserSchema.pre('save', async function (next) {
   }
 });
 
-const User = mongoose.model('User', UserSchema);
+const User = mongoose.model("User", UserSchema);
 export default User;

@@ -4,11 +4,9 @@ import {
   LayoutDashboard,
   BookOpen,
   Settings,
-  DollarSign,
   User,
   Bell,
   ChevronDown,
-  Menu,
   X,
   Star,
   LogOut,
@@ -130,27 +128,23 @@ const menus = {
     },
     {
       name: "Achievements",
-      icon: <Star size={20} />,
-      link: "/achievements",
-    },
-    {
-      name: "Leaderboard",
       icon: <Trophy size={20} />,
-      link: "/leaderboard",
+      link: "/achievements",
     },
     {
       name: "Courses",
       icon: <BookOpen size={20} />,
       subItems: [
-        { name: "My Courses", link: "/my-courses" },
-        { name: "Playlists", link: "/playlists" },
+        { name: "My Created", link: "/courses" },
+        { name: "Enrolled", link: "/my-courses" },
       ],
     },
     {
       name: "Classrooms",
       icon: <Video size={20} />,
       subItems: [
-        { name: "My Classrooms", link: "/my-classrooms" },
+        { name: "My Created", link: "/classrooms" },
+        { name: "Enrolled", link: "/my-classrooms" },
       ],
     },
     {
@@ -159,14 +153,22 @@ const menus = {
       link: "/teams",
     },
     {
-      name: "Institute",
-      icon: <Building2 size={20} />,
-      link: "/my-institute",
+      name: "Playlists",
+      icon: <List size={20} />,
+      link: "/playlists",
     },
     {
       name: "Events",
-      icon: <Bell size={20} />,
+      icon: <Calendar size={20} />,
       link: "/events",
+    },
+    {
+      name: "Institute",
+      icon: <Building2 size={20} />,
+      subItems: [
+        { name: "Current", link: "/my-institute" },
+        { name: "My Created", link: "/institutes" },
+      ],
     },
     {
       name: "Reports",
@@ -181,17 +183,30 @@ const menus = {
       link: "/dashboard",
     },
     {
-      name: "Courses",
+      name: "Achievements",
+      icon: <Trophy size={20} />,
+      link: "/achievements",
+    },
+    {
+      name: "My Courses",
       icon: <BookOpen size={20} />,
       subItems: [
-        { name: "My Courses", link: "/courses" },
-        { name: "Create Course", link: "/create-course" },
+        { name: "All Courses", link: "/courses" },
+        { name: "Enrolled Courses", link: "/my-courses" },
       ],
     },
     {
       name: "Classrooms",
-      icon: <Bell size={20} />,
-      link: "/classrooms",
+      icon: <Video size={20} />,
+      subItems: [
+        { name: "Manage Classrooms", link: "/classrooms" },
+        { name: "My Classrooms", link: "/my-classrooms" },
+      ],
+    },
+    {
+      name: "Teams",
+      icon: <User size={20} />,
+      link: "/teams",
     },
     {
       name: "Departments",
@@ -199,14 +214,14 @@ const menus = {
       link: "/departments",
     },
     {
-      name: "Assignments",
-      icon: <FileText size={20} />,
-      link: "/assignments",
+      name: "Events",
+      icon: <Calendar size={20} />,
+      link: "/events",
     },
     {
-      name: "Earnings",
-      icon: <DollarSign size={20} />,
-      link: "/earnings",
+      name: "Reports",
+      icon: <FileText size={20} />,
+      link: "/reports",
     },
   ],
   admin: [
@@ -218,7 +233,10 @@ const menus = {
     {
       name: "Institute",
       icon: <Building2 size={20} />,
-      link: "/institutes",
+      subItems: [
+        { name: "My Institute", link: "/admin/institute" },
+        { name: "All Institutes", link: "/institutes" },
+      ],
     },
     {
       name: "User Management",
@@ -234,7 +252,7 @@ const menus = {
       name: "Course Management",
       icon: <BookOpen size={20} />,
       subItems: [
-        { name: "Courses", link: "/courses" },
+        { name: "All Courses", link: "/courses" },
         { name: "Categories", link: "/categories" },
       ],
     },
@@ -253,7 +271,7 @@ const menus = {
     },
     {
       name: "Events",
-      icon: <Bell size={20} />,
+      icon: <Calendar size={20} />,
       link: "/events",
     },
     {
@@ -264,9 +282,7 @@ const menus = {
     {
       name: "Reports",
       icon: <FileText size={20} />,
-      subItems: [
-        { name: "All Reports", link: "/reports" },
-      ],
+      link: "/reports",
     },
   ],
   superadmin: [
@@ -294,7 +310,7 @@ const menus = {
       name: "Course Management",
       icon: <BookOpen size={20} />,
       subItems: [
-        { name: "Courses", link: "/courses" },
+        { name: "All Courses", link: "/courses" },
         { name: "Categories", link: "/categories" },
       ],
     },
@@ -318,7 +334,7 @@ const menus = {
     },
     {
       name: "Events",
-      icon: <Bell size={20} />,
+      icon: <Calendar size={20} />,
       link: "/events",
     },
     {
@@ -334,9 +350,7 @@ const menus = {
     {
       name: "Reports",
       icon: <FileText size={20} />,
-      subItems: [
-        { name: "All Reports", link: "/reports" },
-      ],
+      link: "/reports",
     },
   ],
 };
@@ -347,10 +361,16 @@ const friendsList = [
   { name: "Prashant", role: "Software Developer", avatar: "P" },
 ];
 
-const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClose = () => {} }) => {
+const Sidebar = ({
+  collapsed = false,
+  classroomId = null,
+  isOpen = false,
+  onClose = () => {},
+}) => {
   const currentUser = useSelector((state) => state.user.user);
-  const { currentClassroomId: storeClassroomId, currentClassroomData } = useSelector((state) => state.classroom);
-  const role = currentUser?.role || 'student';
+  const { currentClassroomId: storeClassroomId, currentClassroomData } =
+    useSelector((state) => state.classroom);
+  const role = currentUser?.role || "student";
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const sidebarOpen = isOpen || internalIsOpen;
   const [openMenus, setOpenMenus] = useState({});
@@ -363,42 +383,54 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
   const location = useLocation();
   const { courses } = useSelector((state) => state.course);
   const { currentCourseId } = useSelector((state) => state.lesson);
-  
-  const isStudent = role === 'student';
-  
+
+  const isStudent = role === "student";
+
   const classroomIdMatch = location.pathname.match(/\/classroom\/([^/]+)/);
   const sessionIdMatch = location.pathname.match(/\/classrooms\/([^/]+)/);
-  const sessionAttendanceMatch = location.pathname.match(/\/sessions\/([^/]+)\/attendance/);
-  
+  const sessionAttendanceMatch = location.pathname.match(
+    /\/sessions\/([^/]+)\/attendance/,
+  );
+
   // Priority order: Redux store > URL parsing > prop
   // Use Redux store as the primary source of truth for current classroom
   const extractedClassroomId = classroomIdMatch ? classroomIdMatch[1] : null;
   const currentSessionId = sessionIdMatch ? sessionIdMatch[1] : null;
-  const currentClassroomId = storeClassroomId || extractedClassroomId || classroomId;
+  const currentClassroomId =
+    storeClassroomId || extractedClassroomId || classroomId;
 
   // Debug logging for session attendance
-  if (location.pathname.includes('/sessions/') && location.pathname.includes('/attendance')) {
-    console.log('Session attendance page debug:', {
+  if (
+    location.pathname.includes("/sessions/") &&
+    location.pathname.includes("/attendance")
+  ) {
+    console.log("Session attendance page debug:", {
       pathname: location.pathname,
       storeClassroomId,
       extractedClassroomId,
       classroomIdProp: classroomId,
       currentClassroomId,
       sessionAttendanceMatch,
-      currentClassroomData: currentClassroomData?.title
+      currentClassroomData: currentClassroomData?.title,
     });
   }
 
   // Determine which menus to show based on current path
   const isCoursePage = location.pathname.includes("/course-overview/");
-  const isClassroomPage = (
-    location.pathname.includes("/classroom/") || 
-    location.pathname.match(/\/classrooms\/[^/]+$/) ||
-    location.pathname.includes("/sessions/") ||
-    (classroomId && (location.pathname.includes("/session/") || location.pathname.includes("/sessions/")))
-  ) && !location.pathname.includes("/live");
+  const isClassroomPage =
+    (location.pathname.includes("/classroom/") ||
+      location.pathname.match(/\/classrooms\/[^/]+$/) ||
+      location.pathname.includes("/sessions/") ||
+      (classroomId &&
+        (location.pathname.includes("/session/") ||
+          location.pathname.includes("/sessions/")))) &&
+    !location.pathname.includes("/live");
 
-  const currentMenus = isClassroomPage ? classroomMenus : isCoursePage ? courseMenus : menus[role] || [];
+  const currentMenus = isClassroomPage
+    ? classroomMenus
+    : isCoursePage
+      ? courseMenus
+      : menus[role] || [];
 
   useEffect(() => {
     if (isClassroomPage) {
@@ -418,10 +450,16 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
       } else if (location.pathname.includes("/reports/engagement")) {
         setActiveMenu("/classroom/reports/engagement");
         setOpenMenus((prev) => ({ ...prev, Reports: true }));
-      } else if (location.pathname.includes("/session/") && location.pathname.includes("/attendance")) {
+      } else if (
+        location.pathname.includes("/session/") &&
+        location.pathname.includes("/attendance")
+      ) {
         setActiveMenu("/classroom/reports/attendance");
         setOpenMenus((prev) => ({ ...prev, Reports: true }));
-      } else if (location.pathname.includes("/sessions/") && location.pathname.includes("/attendance")) {
+      } else if (
+        location.pathname.includes("/sessions/") &&
+        location.pathname.includes("/attendance")
+      ) {
         setActiveMenu("/classroom/reports/attendance");
         setOpenMenus((prev) => ({ ...prev, Reports: true }));
       } else if (location.pathname.includes("/recordings")) {
@@ -450,12 +488,17 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
       } else if (location.pathname.includes("/assignments")) {
         setActiveMenu("/course-overview/assignments");
         setOpenMenus((prev) => ({ ...prev, Reports: true }));
-      } else if (location.pathname.includes("/assignments") || location.pathname.match(/\/assignment\/[^/]+\/grade$/)) {
+      } else if (
+        location.pathname.includes("/assignments") ||
+        location.pathname.match(/\/assignment\/[^/]+\/grade$/)
+      ) {
         setActiveMenu("/course-overview/assignments");
       } else if (location.pathname.includes("/resources")) {
         setActiveMenu("/course-overview/resources");
       } else if (location.pathname.includes("/settings/")) {
-        const settingsPath = location.pathname.match(/\/course-overview\/[^/]+\/(settings\/[^/]+)$/)?.[1];
+        const settingsPath = location.pathname.match(
+          /\/course-overview\/[^/]+\/(settings\/[^/]+)$/,
+        )?.[1];
         if (settingsPath) {
           setActiveMenu(`/course-overview/${settingsPath}`);
           setOpenMenus((prev) => ({ ...prev, "Course Settings": true }));
@@ -481,12 +524,18 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
       } else if (location.pathname.startsWith("/categories")) {
         setActiveMenu("/categories");
         setOpenMenus((prev) => ({ ...prev, "Course Management": true }));
-      } else if (location.pathname.startsWith("/courses") || location.pathname === "/create") {
+      } else if (
+        location.pathname.startsWith("/courses") ||
+        location.pathname === "/create"
+      ) {
         setActiveMenu("/courses");
         setOpenMenus((prev) => ({ ...prev, "Course Management": true }));
       } else if (location.pathname.startsWith("/enrollments")) {
         setActiveMenu(location.pathname);
-      } else if (location.pathname === "/reports" || location.pathname.startsWith("/reports/")) {
+      } else if (
+        location.pathname === "/reports" ||
+        location.pathname.startsWith("/reports/")
+      ) {
         setActiveMenu("/reports");
       } else if (location.pathname === "/events") {
         setActiveMenu("/events");
@@ -512,17 +561,47 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
     currentMenus.forEach((item) => {
       if (item.subItems) {
         const hasActiveSubItem = item.subItems.some((sub) => {
-          if (sub.link === "/teams" && location.pathname.startsWith("/teams")) return true;
-          if (sub.link === "/departments" && location.pathname.startsWith("/departments")) return true;
-          if (sub.link === "/users" && location.pathname === "/users") return true;
-          if (sub.link === "/users/instructor" && location.pathname === "/users/instructor") return true;
-          if (sub.link === "/users/student" && location.pathname === "/users/student") return true;
-          if (sub.link === "/courses" && (location.pathname === "/courses" || location.pathname === "/create")) return true;
-          if (sub.link === "/categories" && location.pathname === "/categories") return true;
-          if (sub.link === "/classrooms" && location.pathname === "/classrooms") return true;
-          if (sub.link === "/recordings" && location.pathname === "/recordings") return true;
-          if (sub.link.startsWith("/enrollments") && location.pathname.startsWith("/enrollments")) return true;
-          if (sub.link.includes("/enrollments/") && location.pathname.includes("/enrollments/")) return true;
+          if (sub.link === "/teams" && location.pathname.startsWith("/teams"))
+            return true;
+          if (
+            sub.link === "/departments" &&
+            location.pathname.startsWith("/departments")
+          )
+            return true;
+          if (sub.link === "/users" && location.pathname === "/users")
+            return true;
+          if (
+            sub.link === "/users/instructor" &&
+            location.pathname === "/users/instructor"
+          )
+            return true;
+          if (
+            sub.link === "/users/student" &&
+            location.pathname === "/users/student"
+          )
+            return true;
+          if (
+            sub.link === "/courses" &&
+            (location.pathname === "/courses" ||
+              location.pathname === "/create")
+          )
+            return true;
+          if (sub.link === "/categories" && location.pathname === "/categories")
+            return true;
+          if (sub.link === "/classrooms" && location.pathname === "/classrooms")
+            return true;
+          if (sub.link === "/recordings" && location.pathname === "/recordings")
+            return true;
+          if (
+            sub.link.startsWith("/enrollments") &&
+            location.pathname.startsWith("/enrollments")
+          )
+            return true;
+          if (
+            sub.link.includes("/enrollments/") &&
+            location.pathname.includes("/enrollments/")
+          )
+            return true;
           return sub.link === location.pathname;
         });
         if (hasActiveSubItem) {
@@ -538,14 +617,16 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
 
     setDeleting(true);
     try {
-      const { courseAPI } = await import('../services/api');
-      const { setCourses } = await import('../store/slices/courseSlice');
+      const { courseAPI } = await import("../services/api");
+      const { setCourses } = await import("../store/slices/courseSlice");
       await courseAPI.delete(currentCourse.slug);
-      const updatedCourses = courses.filter(course => course._id !== currentCourseId);
+      const updatedCourses = courses.filter(
+        (course) => course._id !== currentCourseId,
+      );
       dispatch(setCourses(updatedCourses));
-      navigate('/courses');
+      navigate("/courses");
     } catch (error) {
-      console.error('Error deleting course:', error);
+      console.error("Error deleting course:", error);
     } finally {
       setDeleting(false);
       setShowDeleteModal(false);
@@ -553,36 +634,46 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
   };
 
   const handleNavigation = (link, action) => {
-    if (action === 'delete') {
+    if (action === "delete") {
       setShowDeleteModal(true);
       return;
     }
     if (link) {
       let finalLink = link;
-      
+
       if (link.startsWith("/classroom/") && currentClassroomId) {
-        finalLink = link.replace("/classroom/", `/classroom/${currentClassroomId}/`);
+        finalLink = link.replace(
+          "/classroom/",
+          `/classroom/${currentClassroomId}/`,
+        );
         if (link === "/classroom/") {
           finalLink = `/classroom/${currentClassroomId}`;
         }
       } else if (link.startsWith("/classroom/") && !currentClassroomId) {
         // Prevent navigation if classroom ID is not available
-        console.warn('Classroom ID not available for navigation:', link);
+        console.warn("Classroom ID not available for navigation:", link);
         return;
       }
-      
+
       if (link === "/course-overview/" && currentCourseId) {
         const currentCourse = courses.find((c) => c._id === currentCourseId);
         if (currentCourse) {
           finalLink = `/course-overview/${currentCourse.slug}`;
         }
       }
-      if ((link.includes("/course-overview/enrollments/") || link.includes("/course-overview/reports/") || link.includes("/course-overview/settings/") || link.includes("/course-overview/assignments") || link.includes("/course-overview/resources")) && currentCourseId) {
+      if (
+        (link.includes("/course-overview/enrollments/") ||
+          link.includes("/course-overview/reports/") ||
+          link.includes("/course-overview/settings/") ||
+          link.includes("/course-overview/assignments") ||
+          link.includes("/course-overview/resources")) &&
+        currentCourseId
+      ) {
         const currentCourse = courses.find((c) => c._id === currentCourseId);
         if (currentCourse) {
           finalLink = link.replace(
             "/course-overview/",
-            `/course-overview/${currentCourse.slug}/`
+            `/course-overview/${currentCourse.slug}/`,
           );
         }
       }
@@ -602,7 +693,7 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
 
   const SidebarContent = ({ isMobile = false }) => {
     const isCollapsed = isMobile ? false : collapsed;
-    
+
     return (
       <div
         className={`h-full bg-white shadow-lg flex flex-col transition-all duration-300 ${
@@ -615,19 +706,32 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
             isCollapsed ? "justify-center" : "justify-between"
           }`}
         >
-          <Link to="/" onClick={() => { if (isMobile) { setInternalIsOpen(false); onClose(); } }}>
+          <Link
+            to="/"
+            onClick={() => {
+              if (isMobile) {
+                setInternalIsOpen(false);
+                onClose();
+              }
+            }}
+          >
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center">
                 <img className="w-full" src={LOGO} alt="" />
               </div>
               {!isCollapsed && (
-                <span className="text-xl font-bold text-gray-900">Academiq</span>
+                <span className="text-xl font-bold text-gray-900">
+                  Academiq
+                </span>
               )}
             </div>
           </Link>
           {isMobile && (
             <button
-              onClick={() => { setInternalIsOpen(false); onClose(); }}
+              onClick={() => {
+                setInternalIsOpen(false);
+                onClose();
+              }}
               className="p-2 rounded-lg hover:bg-gray-100 tap-target"
             >
               <X size={20} className="text-gray-600" />
@@ -635,110 +739,86 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
           )}
         </div>
 
-      <div
-        className="sidebar-content flex-1 overflow-y-auto"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        <style>{`
+        <div
+          className="sidebar-content flex-1 overflow-y-auto"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          <style>{`
           .sidebar-content::-webkit-scrollbar {
             display: none;
           }
         `}</style>
-        {/* Menu Items */}
-        <div className="px-4 pt-2 space-y-1">
-          {currentMenus.map((item, idx) => (
-            <div key={idx}>
-              {/* Parent Item */}
-              <div
-                className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200 group ${
-                  activeMenu === item.link ||
-                  (item.link === "/teams" &&
-                    location.pathname.startsWith("/teams")) ||
-                  (item.link === "/departments" &&
-                    location.pathname.startsWith("/departments")) ||
-                  (item.name === "Enrollments" &&
-                    location.pathname.startsWith("/enrollments"))
-                    ? "bg-orange-100 text-orange-600"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
-                onClick={() =>
-                  item.subItems
-                    ? toggleMenu(item.name)
-                    : handleNavigation(item.link, item.action)
-                }
-              >
-                <div className="flex items-center space-x-3">
-                  <div
-                    className={`${
-                      activeMenu === item.link ||
-                      (item.link === "/teams" &&
-                        location.pathname.startsWith("/teams")) ||
-                      (item.link === "/departments" &&
-                        location.pathname.startsWith("/departments")) ||
-                      (item.name === "Enrollments" &&
-                        location.pathname.startsWith("/enrollments"))
-                        ? "text-orange-600" : "text-gray-600"
-                    } group-hover:scale-110 transition-transform duration-200`}
-                  >
-                    {item.icon}
+          {/* Menu Items */}
+          <div className="px-4 pt-2 space-y-1">
+            {currentMenus.map((item, idx) => (
+              <div key={idx}>
+                {/* Parent Item */}
+                <div
+                  className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200 group ${
+                    activeMenu === item.link ||
+                    (item.link === "/teams" &&
+                      location.pathname.startsWith("/teams")) ||
+                    (item.link === "/departments" &&
+                      location.pathname.startsWith("/departments")) ||
+                    (item.name === "Enrollments" &&
+                      location.pathname.startsWith("/enrollments"))
+                      ? "bg-orange-100 text-orange-600"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                  onClick={() =>
+                    item.subItems
+                      ? toggleMenu(item.name)
+                      : handleNavigation(item.link, item.action)
+                  }
+                >
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className={`${
+                        activeMenu === item.link ||
+                        (item.link === "/teams" &&
+                          location.pathname.startsWith("/teams")) ||
+                        (item.link === "/departments" &&
+                          location.pathname.startsWith("/departments")) ||
+                        (item.name === "Enrollments" &&
+                          location.pathname.startsWith("/enrollments"))
+                          ? "text-orange-600"
+                          : "text-gray-600"
+                      } group-hover:scale-110 transition-transform duration-200`}
+                    >
+                      {item.icon}
+                    </div>
+                    {!isCollapsed && (
+                      <span className="font-medium text-sm">{item.name}</span>
+                    )}
                   </div>
-                  {!isCollapsed && (
-                    <span className="font-medium text-sm">{item.name}</span>
+                  {item.subItems && !isCollapsed && (
+                    <div
+                      className={`transition-transform duration-200 ${
+                        openMenus[item.name] ? "rotate-180" : "rotate-0"
+                      } ${
+                        activeMenu === item.link ||
+                        (item.link === "/teams" &&
+                          location.pathname.startsWith("/teams")) ||
+                        (item.link === "/departments" &&
+                          location.pathname.startsWith("/departments")) ||
+                        (item.name === "Enrollments" &&
+                          location.pathname.startsWith("/enrollments"))
+                          ? "text-orange-600"
+                          : "text-gray-400"
+                      }`}
+                    >
+                      <ChevronDown size={16} />
+                    </div>
                   )}
                 </div>
-                {item.subItems && !isCollapsed && (
-                  <div
-                    className={`transition-transform duration-200 ${
-                      openMenus[item.name] ? "rotate-180" : "rotate-0"
-                    } ${
-                      activeMenu === item.link ||
-                      (item.link === "/teams" &&
-                        location.pathname.startsWith("/teams")) ||
-                      (item.link === "/departments" &&
-                        location.pathname.startsWith("/departments")) ||
-                      (item.name === "Enrollments" &&
-                        location.pathname.startsWith("/enrollments"))
-                        ? "text-orange-600" : "text-gray-400"
-                    }`}
-                  >
-                    <ChevronDown size={16} />
-                  </div>
-                )}
-              </div>
 
-              {/* Submenu */}
-              {item.subItems && openMenus[item.name] && !isCollapsed && (
-                <div className="ml-8 mt-1 space-y-1 overflow-hidden transition-all duration-300">
-                  {item.subItems.map((sub, i) => (
-                    <div
-                      key={i}
-                      className={`p-2 rounded-lg cursor-pointer transition-colors duration-200 flex items-center space-x-2 ${
-                        activeMenu === sub.link ||
-                        (sub.link === "/teams" &&
-                          location.pathname.startsWith("/teams")) ||
-                        (sub.link === "/departments" &&
-                          location.pathname.startsWith("/departments")) ||
-                        (sub.link.startsWith("/enrollments") &&
-                          location.pathname.startsWith("/enrollments")) ||
-                        (sub.link.includes("/enrollments/users") &&
-                          location.pathname.includes("/enrollments/users")) ||
-                        (sub.link.includes("/enrollments/teams") &&
-                          location.pathname.includes("/enrollments/teams")) ||
-                        (sub.link.includes("/reports/users") &&
-                          location.pathname.includes("/reports/users")) ||
-                        (sub.link.includes("/reports/teams") &&
-                          location.pathname.includes("/reports/teams")) ||
-                        (sub.link.includes("/reports/course") &&
-                          location.pathname.includes("/reports/course")) ||
-                        (sub.link.includes("/assignments") &&
-                          location.pathname.includes("/assignments"))
-                          ? "bg-orange-100 text-orange-600"
-                          : "text-gray-600 hover:bg-gray-50"
-                      }`}
-                      onClick={() => handleNavigation(sub.link)}
-                    >
+                {/* Submenu */}
+                {item.subItems && openMenus[item.name] && !isCollapsed && (
+                  <div className="ml-8 mt-1 space-y-1 overflow-hidden transition-all duration-300">
+                    {item.subItems.map((sub, i) => (
                       <div
-                        className={`w-2 h-2 rounded-full ${
+                        key={i}
+                        className={`p-2 rounded-lg cursor-pointer transition-colors duration-200 flex items-center space-x-2 ${
                           activeMenu === sub.link ||
                           (sub.link === "/teams" &&
                             location.pathname.startsWith("/teams")) ||
@@ -749,33 +829,62 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
                           (sub.link.includes("/enrollments/users") &&
                             location.pathname.includes("/enrollments/users")) ||
                           (sub.link.includes("/enrollments/teams") &&
-                            location.pathname.includes("/enrollments/teams"))
-                            ? "bg-orange-600"
-                            : "bg-orange-500"
+                            location.pathname.includes("/enrollments/teams")) ||
+                          (sub.link.includes("/reports/users") &&
+                            location.pathname.includes("/reports/users")) ||
+                          (sub.link.includes("/reports/teams") &&
+                            location.pathname.includes("/reports/teams")) ||
+                          (sub.link.includes("/reports/course") &&
+                            location.pathname.includes("/reports/course")) ||
+                          (sub.link.includes("/assignments") &&
+                            location.pathname.includes("/assignments"))
+                            ? "bg-orange-100 text-orange-600"
+                            : "text-gray-600 hover:bg-gray-50"
                         }`}
-                      ></div>
-                      <span className="text-sm font-medium">{sub.name}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+                        onClick={() => handleNavigation(sub.link)}
+                      >
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            activeMenu === sub.link ||
+                            (sub.link === "/teams" &&
+                              location.pathname.startsWith("/teams")) ||
+                            (sub.link === "/departments" &&
+                              location.pathname.startsWith("/departments")) ||
+                            (sub.link.startsWith("/enrollments") &&
+                              location.pathname.startsWith("/enrollments")) ||
+                            (sub.link.includes("/enrollments/users") &&
+                              location.pathname.includes(
+                                "/enrollments/users",
+                              )) ||
+                            (sub.link.includes("/enrollments/teams") &&
+                              location.pathname.includes("/enrollments/teams"))
+                              ? "bg-orange-600"
+                              : "bg-orange-500"
+                          }`}
+                        ></div>
+                        <span className="text-sm font-medium">{sub.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
-      </div>
-
-      {/* Logout Section */}
-      <div className="border-t border-gray-100 p-4 mt-auto">
-        <div
-          onClick={handleLogout}
-          className="flex items-center space-x-3 p-3 rounded-xl text-red-600 hover:bg-red-50 cursor-pointer transition-colors duration-200"
-        >
-          <LogOut size={20} />
-          {!isCollapsed && <span className="font-medium text-sm">Logout</span>}
+        {/* Logout Section */}
+        <div className="border-t border-gray-100 p-4 mt-auto">
+          <div
+            onClick={handleLogout}
+            className="flex items-center space-x-3 p-3 rounded-xl text-red-600 hover:bg-red-50 cursor-pointer transition-colors duration-200"
+          >
+            <LogOut size={20} />
+            {!isCollapsed && (
+              <span className="font-medium text-sm">Logout</span>
+            )}
+          </div>
         </div>
       </div>
-    </div>
     );
   };
 
@@ -784,9 +893,12 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Delete Course?</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+              Delete Course?
+            </h3>
             <p className="text-gray-600 mb-6">
-              Are you sure you want to delete this course? This action cannot be undone.
+              Are you sure you want to delete this course? This action cannot be
+              undone.
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -801,8 +913,8 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
                 disabled={deleting}
                 className={`px-6 py-2 rounded-lg font-medium flex items-center gap-2 ${
                   deleting
-                    ? 'bg-gray-400 text-white cursor-not-allowed'
-                    : 'bg-red-500 hover:bg-red-600 text-white'
+                    ? "bg-gray-400 text-white cursor-not-allowed"
+                    : "bg-red-500 hover:bg-red-600 text-white"
                 } transition-colors`}
               >
                 {deleting ? (
@@ -811,19 +923,22 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
                     Deleting...
                   </>
                 ) : (
-                  'Yes'
+                  "Yes"
                 )}
               </button>
             </div>
           </div>
         </div>
       )}
-      
+
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/40 z-40 lg:hidden"
-          onClick={() => { setInternalIsOpen(false); onClose(); }}
+          onClick={() => {
+            setInternalIsOpen(false);
+            onClose();
+          }}
         />
       )}
 
@@ -835,11 +950,11 @@ const Sidebar = ({ collapsed = false, classroomId = null, isOpen = false, onClos
       >
         <SidebarContent isMobile={false} />
       </div>
-      
+
       {/* Mobile Sidebar */}
       <div
         className={`fixed top-0 left-0 h-screen w-72 bg-white z-50 shadow-xl transform transition-transform duration-300 lg:hidden ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <SidebarContent isMobile={true} />

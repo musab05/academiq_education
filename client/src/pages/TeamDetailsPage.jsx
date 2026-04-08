@@ -78,7 +78,9 @@ const TeamDetailsPage = () => {
           name: foundTeam.name,
           description: foundTeam.description,
         });
-        setSelectedCourses(foundTeam.trackedCourses?.map(c => c._id || c) || []);
+        setSelectedCourses(
+          foundTeam.trackedCourses?.map((c) => c._id || c) || [],
+        );
         // Set current team in Redux store
         dispatch(setCurrentTeam(foundTeam));
       }
@@ -174,7 +176,7 @@ const TeamDetailsPage = () => {
   const handleDeleteTeam = async () => {
     if (
       !window.confirm(
-        "Are you sure you want to delete this team? This action cannot be undone."
+        "Are you sure you want to delete this team? This action cannot be undone.",
       )
     )
       return;
@@ -225,10 +227,10 @@ const TeamDetailsPage = () => {
   };
 
   const handleToggleCourse = (courseId) => {
-    setSelectedCourses(prev => 
-      prev.includes(courseId) 
-        ? prev.filter(id => id !== courseId)
-        : [...prev, courseId]
+    setSelectedCourses((prev) =>
+      prev.includes(courseId)
+        ? prev.filter((id) => id !== courseId)
+        : [...prev, courseId],
     );
   };
 
@@ -237,10 +239,16 @@ const TeamDetailsPage = () => {
       await teamAPI.updateTrackedCourses(teamId, selectedCourses);
       setShowCourseSelector(false);
       fetchTeamDetails();
-      showNotification({ type: 'success', message: 'Tracked courses updated successfully' });
+      showNotification({
+        type: "success",
+        message: "Tracked courses updated successfully",
+      });
     } catch (error) {
-      console.error('Error updating tracked courses:', error);
-      showNotification({ type: 'error', message: 'Failed to update tracked courses' });
+      console.error("Error updating tracked courses:", error);
+      showNotification({
+        type: "error",
+        message: "Failed to update tracked courses",
+      });
     }
   };
 
@@ -257,32 +265,31 @@ const TeamDetailsPage = () => {
       });
       return false;
     }
-    const userId = user.uuid;
-    const member = team.members.find((m) => m.user.uuid === userId);
-    const canEdit =
-      member?.role === "manager" || team.createdBy.uuid === userId;
+    const userId = user._id || user.id;
+    const member = team.members.find((m) => m.user._id === userId);
+    const canEdit = member?.role === "manager" || team.createdBy._id === userId;
     console.log("canEditTeam:", canEdit, {
       userId,
       member,
       memberRole: member?.role,
       createdBy: team.createdBy._id,
       isManager: member?.role === "manager",
-      isCreator: team.createdBy.uuid === userId,
+      isCreator: team.createdBy._id === userId,
     });
     return canEdit;
   };
 
   const canManageMembers = () => {
     if (!team || !user) return false;
-    const userId = user.uuid;
-    const canManage = team.createdBy.uuid === userId;
+    const userId = user._id || user.id;
+    const canManage = team.createdBy._id === userId;
     return canManage;
   };
 
   const isCreator = () => {
     if (!team || !user) return false;
-    const userId = user.uuid;
-    const creator = team.createdBy.uuid === userId;
+    const userId = user._id || user.id;
+    const creator = team.createdBy._id === userId;
     return creator;
   };
 
@@ -318,10 +325,19 @@ const TeamDetailsPage = () => {
 
   return (
     <div className="flex bg-gray-50 h-screen overflow-hidden">
-      <Sidebar collapsed={sidebarCollapsed} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <Header onMenuClick={() => { setSidebarCollapsed(!sidebarCollapsed); setSidebarOpen(true); }} />
+        <Header
+          onMenuClick={() => {
+            setSidebarCollapsed(!sidebarCollapsed);
+            setSidebarOpen(true);
+          }}
+        />
 
         <div className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
           <div className="max-w-6xl mx-auto">
@@ -332,7 +348,7 @@ const TeamDetailsPage = () => {
               className="mb-6"
             >
               <button
-                onClick={() => navigate('/teams')}
+                onClick={() => navigate("/teams")}
                 className="flex items-center gap-2 text-gray-600 hover:text-orange-500 mb-4 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
@@ -345,7 +361,9 @@ const TeamDetailsPage = () => {
                       <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                         <Users className="w-5 h-5 sm:w-6 sm:h-6" />
                       </div>
-                      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Team Settings</h1>
+                      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
+                        Team Settings
+                      </h1>
                     </div>
                     <p className="text-orange-100 text-sm sm:text-base md:text-lg">
                       Manage your learning team, members, and course tracking
@@ -393,8 +411,12 @@ const TeamDetailsPage = () => {
                     <Settings className="w-5 h-5 text-orange-600" />
                   </div>
                   <div>
-                    <h2 className="text-base sm:text-lg font-bold text-gray-900">Team Information</h2>
-                    <p className="text-xs sm:text-sm text-gray-500">Basic details about your learning team</p>
+                    <h2 className="text-base sm:text-lg font-bold text-gray-900">
+                      Team Information
+                    </h2>
+                    <p className="text-xs sm:text-sm text-gray-500">
+                      Basic details about your learning team
+                    </p>
                   </div>
                 </div>
               </div>
@@ -432,7 +454,9 @@ const TeamDetailsPage = () => {
                       rows={4}
                       disabled={!canEditTeam()}
                     />
-                    <p className="text-xs text-gray-500 mt-2">Help members understand what this team is about</p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Help members understand what this team is about
+                    </p>
                   </div>
                 </div>
               </div>
@@ -453,8 +477,14 @@ const TeamDetailsPage = () => {
                         <BookOpen className="w-5 h-5 text-orange-600" />
                       </div>
                       <div>
-                        <h2 className="text-lg font-bold text-gray-900">Course Tracking</h2>
-                        <p className="text-sm text-gray-500">{selectedCourses.length} course{selectedCourses.length !== 1 ? 's' : ''} being tracked</p>
+                        <h2 className="text-lg font-bold text-gray-900">
+                          Course Tracking
+                        </h2>
+                        <p className="text-sm text-gray-500">
+                          {selectedCourses.length} course
+                          {selectedCourses.length !== 1 ? "s" : ""} being
+                          tracked
+                        </p>
                       </div>
                     </div>
                     <motion.button
@@ -464,7 +494,7 @@ const TeamDetailsPage = () => {
                       className="bg-orange-500 text-white px-5 py-2.5 rounded-xl hover:bg-orange-600 flex items-center gap-2 transition-colors shadow-sm font-semibold"
                     >
                       <Plus className="w-4 h-4" />
-                      {showCourseSelector ? 'Close' : 'Manage Courses'}
+                      {showCourseSelector ? "Close" : "Manage Courses"}
                     </motion.button>
                   </div>
                 </div>
@@ -477,9 +507,13 @@ const TeamDetailsPage = () => {
                           <BookOpen className="w-4 h-4 text-white" />
                         </div>
                         <div>
-                          <p className="font-semibold text-orange-900 mb-1">Track Team Learning Progress</p>
+                          <p className="font-semibold text-orange-900 mb-1">
+                            Track Team Learning Progress
+                          </p>
                           <p className="text-sm text-orange-800">
-                            Select courses to monitor team member progress, compare performance, and identify learning opportunities
+                            Select courses to monitor team member progress,
+                            compare performance, and identify learning
+                            opportunities
                           </p>
                         </div>
                       </div>
@@ -498,8 +532,12 @@ const TeamDetailsPage = () => {
                             className="w-5 h-5 text-orange-500 border-gray-300 rounded focus:ring-orange-500 mt-1 flex-shrink-0"
                           />
                           <div className="flex-1 min-w-0">
-                            <div className="font-bold text-gray-900 mb-1">{course.title}</div>
-                            <div className="text-sm text-gray-600 line-clamp-2">{course.description || 'No description available'}</div>
+                            <div className="font-bold text-gray-900 mb-1">
+                              {course.title}
+                            </div>
+                            <div className="text-sm text-gray-600 line-clamp-2">
+                              {course.description || "No description available"}
+                            </div>
                           </div>
                         </motion.label>
                       ))}
@@ -536,8 +574,12 @@ const TeamDetailsPage = () => {
                             <BookOpen className="w-6 h-6 text-white" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="font-bold text-gray-900 truncate mb-1">{course.title}</div>
-                            <div className="text-xs text-orange-700 font-medium">📊 Progress Tracking Enabled</div>
+                            <div className="font-bold text-gray-900 truncate mb-1">
+                              {course.title}
+                            </div>
+                            <div className="text-xs text-orange-700 font-medium">
+                              📊 Progress Tracking Enabled
+                            </div>
                           </div>
                         </motion.div>
                       ))}
@@ -550,8 +592,13 @@ const TeamDetailsPage = () => {
                     <div className="w-20 h-20 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                       <BookOpen className="w-10 h-10 text-orange-500" />
                     </div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">No Courses Tracked</h3>
-                    <p className="text-gray-600 mb-4 max-w-md mx-auto">Start tracking courses to monitor team learning progress and identify areas for improvement</p>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">
+                      No Courses Tracked
+                    </h3>
+                    <p className="text-gray-600 mb-4 max-w-md mx-auto">
+                      Start tracking courses to monitor team learning progress
+                      and identify areas for improvement
+                    </p>
                     <button
                       onClick={() => setShowCourseSelector(true)}
                       className="bg-orange-500 text-white px-6 py-2.5 rounded-xl hover:bg-orange-600 transition-colors font-semibold inline-flex items-center gap-2"
@@ -578,8 +625,14 @@ const TeamDetailsPage = () => {
                       <Users className="w-5 h-5 text-orange-600" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-bold text-gray-900">Team Members</h2>
-                      <p className="text-sm text-gray-500">{team.members.length} member{team.members.length !== 1 ? 's' : ''} in this learning team</p>
+                      <h2 className="text-lg font-bold text-gray-900">
+                        Team Members
+                      </h2>
+                      <p className="text-sm text-gray-500">
+                        {team.members.length} member
+                        {team.members.length !== 1 ? "s" : ""} in this learning
+                        team
+                      </p>
                     </div>
                   </div>
                   {canManageMembers() && (
@@ -634,9 +687,23 @@ const TeamDetailsPage = () => {
                             </span>
                           </div>
                           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs sm:text-sm text-gray-600">
-                            <span className="font-medium truncate">{member.user.email}</span>
-                            <span className="hidden sm:inline text-gray-400">•</span>
-                            <span>Joined {new Date(member.joinedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                            <span className="font-medium truncate">
+                              {member.user.email}
+                            </span>
+                            <span className="hidden sm:inline text-gray-400">
+                              •
+                            </span>
+                            <span>
+                              Joined{" "}
+                              {new Date(member.joinedAt).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                },
+                              )}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -650,9 +717,7 @@ const TeamDetailsPage = () => {
                             }
                             className="p-2 sm:p-2.5 text-gray-500 hover:text-orange-600 hover:bg-orange-100 rounded-xl transition-all border-2 border-transparent hover:border-orange-300 tap-target"
                             title={`Make ${
-                              member.role === "manager"
-                                ? "member"
-                                : "manager"
+                              member.role === "manager" ? "member" : "manager"
                             }`}
                           >
                             <Settings className="w-5 h-5" />
@@ -660,9 +725,7 @@ const TeamDetailsPage = () => {
                           <motion.button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
-                            onClick={() =>
-                              handleRemoveMember(member.user._id)
-                            }
+                            onClick={() => handleRemoveMember(member.user._id)}
                             className="p-2 sm:p-2.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all border-2 border-transparent hover:border-red-300 tap-target"
                             title="Remove member"
                           >

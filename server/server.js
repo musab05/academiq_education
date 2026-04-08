@@ -53,20 +53,67 @@ app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:5173",
     credentials: true,
-  })
+  }),
 );
 
 // Security headers
 app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   next();
 });
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
-app.use("/uploads", express.static("uploads"));
+
+// Serve static uploads with proper video streaming headers
+app.use(
+  "/uploads",
+  (req, res, next) => {
+    // Add CORS headers for media files
+    res.setHeader(
+      "Access-Control-Allow-Origin",
+      process.env.FRONTEND_URL || "http://localhost:5173",
+    );
+    res.setHeader("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Range, Accept-Ranges, Content-Range",
+    );
+    res.setHeader(
+      "Access-Control-Expose-Headers",
+      "Accept-Ranges, Content-Range, Content-Length",
+    );
+
+    // Handle preflight
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(200);
+    }
+
+    next();
+  },
+  express.static("uploads", {
+    setHeaders: (res, path) => {
+      // Set proper MIME types for video files
+      if (path.endsWith(".mp4")) {
+        res.setHeader("Content-Type", "video/mp4");
+      } else if (path.endsWith(".webm")) {
+        res.setHeader("Content-Type", "video/webm");
+      } else if (path.endsWith(".ogg") || path.endsWith(".ogv")) {
+        res.setHeader("Content-Type", "video/ogg");
+      } else if (path.endsWith(".avi")) {
+        res.setHeader("Content-Type", "video/x-msvideo");
+      } else if (path.endsWith(".mov")) {
+        res.setHeader("Content-Type", "video/quicktime");
+      } else if (path.endsWith(".mkv")) {
+        res.setHeader("Content-Type", "video/x-matroska");
+      }
+      // Enable range requests for video seeking
+      res.setHeader("Accept-Ranges", "bytes");
+    },
+  }),
+);
 
 // Routes
 console.log("Registering routes...");
@@ -105,9 +152,6 @@ app.use("/api/instructor-requests", instructorRequestRoutes);
 app.use("/api/admin-requests", adminRequestRoutes);
 console.log("All routes registered successfully");
 
-// Serve uploaded files (keeping for backwards compatibility)
-app.use("/uploads", express.static("uploads"));
-
 // Root route
 app.get("/", (req, res) => {
   res.send("Academiq LMS backend is live!");
@@ -126,7 +170,7 @@ const httpServer = createServer(app);
 
 // Initialize WebSocket signaling server
 initializeSignalingServer(httpServer);
-console.log('WebSocket signaling server initialized');
+console.log("WebSocket signaling server initialized");
 
 // DB Connection
 mongoose
@@ -134,7 +178,7 @@ mongoose
   .then(() => {
     httpServer.listen(PORT, () => {
       console.log(`Server is running at http://localhost:${PORT}`);
-      console.log('WebRTC signaling server ready');
+      console.log("WebRTC signaling server ready");
     });
   })
   .catch((error) => {

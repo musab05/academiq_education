@@ -1,17 +1,17 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { nanoid } from 'nanoid';
-import User from '../models/User.js';
-import Institute from '../models/Institute.js';
-import Notification from '../models/Notification.js';
-import InstructorRequest from '../models/InstructorRequest.js';
-import Course from '../models/Course.js';
-import Enrollment from '../models/Enrollment.js';
-import Classroom from '../models/Classroom.js';
-import { extractDomain } from '../middleware/institute.js';
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { nanoid } from "nanoid";
+import User from "../models/User.js";
+import Institute from "../models/Institute.js";
+import Notification from "../models/Notification.js";
+import InstructorRequest from "../models/InstructorRequest.js";
+import Course from "../models/Course.js";
+import Enrollment from "../models/Enrollment.js";
+import Classroom from "../models/Classroom.js";
+import { extractDomain } from "../middleware/institute.js";
 
 // Utility to generate a unique username
-const generateUniqueUsername = async base => {
+const generateUniqueUsername = async (base) => {
   let username = base.toLowerCase();
   let exists = await User.findOne({ username });
 
@@ -32,26 +32,26 @@ const autoEnrollInInstituteCourses = async (user) => {
     const courses = await Course.find({
       institute: user.institute,
       autoEnrollInstituteCourses: true,
-      published: true
+      published: true,
     });
 
     // Enroll user in all auto-enrollment courses
     const coursePromises = courses.map(async (course) => {
       const existingEnrollment = await Enrollment.findOne({
-        enrolleeType: 'user',
+        enrolleeType: "user",
         enrolleeId: user._id,
-        course: course._id
+        course: course._id,
       });
 
       if (!existingEnrollment) {
         await Enrollment.create({
-          enrolleeType: 'user',
+          enrolleeType: "user",
           enrolleeId: user._id,
-          enrolleeModel: 'User',
+          enrolleeModel: "User",
           course: course._id,
           enrolledBy: user._id,
-          enrollmentSource: 'admin',
-          status: 'active'
+          enrollmentSource: "admin",
+          status: "active",
         });
 
         if (!course.enrolledUsers.includes(user._id)) {
@@ -65,7 +65,7 @@ const autoEnrollInInstituteCourses = async (user) => {
     const classrooms = await Classroom.find({
       institute: user.institute,
       autoEnrollInstituteStudents: true,
-      isActive: true
+      isActive: true,
     });
 
     // Enroll user in all auto-enrollment classrooms
@@ -77,9 +77,14 @@ const autoEnrollInInstituteCourses = async (user) => {
     });
 
     await Promise.all([...coursePromises, ...classroomPromises]);
-    console.log(`Auto-enrolled user ${user.email} in ${courses.length} course(s) and ${classrooms.length} classroom(s)`);
+    console.log(
+      `Auto-enrolled user ${user.email} in ${courses.length} course(s) and ${classrooms.length} classroom(s)`,
+    );
   } catch (error) {
-    console.error('Error auto-enrolling in institute courses/classrooms:', error);
+    console.error(
+      "Error auto-enrolling in institute courses/classrooms:",
+      error,
+    );
   }
 };
 
@@ -93,52 +98,55 @@ const createInstructorRequest = async (user) => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        username: user.username
-      }
+        username: user.username,
+      },
     });
-    
+
     await instructorRequest.save();
-    
+
     // Find all superadmins to notify
-    const superadmins = await User.find({ role: 'superadmin' });
-    
+    const superadmins = await User.find({ role: "superadmin" });
+
     // Create notifications for all superadmins
-    const notifications = superadmins.map(admin => ({
+    const notifications = superadmins.map((admin) => ({
       recipient: admin._id,
-      type: 'instructor-request',
-      title: 'New Instructor Role Request',
+      type: "instructor-request",
+      title: "New Instructor Role Request",
       message: `${user.firstName} ${user.lastName} (${user.email}) has requested instructor privileges. Review and approve in the dashboard.`,
       link: `/admin/instructor-requests`, // You'll need to create this page
       metadata: {
-        userId: user._id
-      }
+        userId: user._id,
+      },
     }));
 
     if (notifications.length > 0) {
       await Notification.insertMany(notifications);
-      console.log(`Instructor request notifications created for ${notifications.length} superadmin(s)`);
+      console.log(
+        `Instructor request notifications created for ${notifications.length} superadmin(s)`,
+      );
     }
-    
+
     return true;
   } catch (error) {
-    console.error('Error creating instructor request:', error);
+    console.error("Error creating instructor request:", error);
     return false;
   }
 };
 
 export const signup = async (req, res) => {
-  const { firstName, lastName, email, password, role, instructorRequest } = req.body;
+  const { firstName, lastName, email, password, role, instructorRequest } =
+    req.body;
 
   try {
     if (!email || !password || !firstName || !lastName) {
-      return res.status(400).json({ error: 'All fields are required' });
+      return res.status(400).json({ error: "All fields are required" });
     }
 
     const emailExists = await User.findOne({ email });
     if (emailExists)
-      return res.status(400).json({ error: 'Email already exists' });
+      return res.status(400).json({ error: "Email already exists" });
 
-    const usernameBase = email.split('@')[0];
+    const usernameBase = email.split("@")[0];
     const username = await generateUniqueUsername(usernameBase);
 
     // Auto-assign institute based on email domain
@@ -174,16 +182,15 @@ export const signup = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: newUser._id, uuid: newUser.uuid, role: newUser.role, email: newUser.email },
+      { id: newUser._id, role: newUser.role, email: newUser.email },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: "7d" },
     );
 
     res.status(201).json({
       token,
       user: {
         _id: newUser._id,
-        uuid: newUser.uuid,
         firstName: newUser.firstName,
         lastName: newUser.lastName,
         username: newUser.username,
@@ -193,8 +200,8 @@ export const signup = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Signup Error:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Signup Error:", error);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -202,17 +209,17 @@ export const signup = async (req, res) => {
 export const syncInstituteEnrollments = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user) return res.status(404).json({ error: "User not found" });
 
     if (user.institute) {
       await autoEnrollInInstituteCourses(user);
-      return res.json({ message: 'Enrollments synced successfully' });
+      return res.json({ message: "Enrollments synced successfully" });
     }
 
-    res.json({ message: 'No institute associated with your account' });
+    res.json({ message: "No institute associated with your account" });
   } catch (error) {
-    console.error('Error syncing enrollments:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error syncing enrollments:", error);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -224,10 +231,10 @@ export const signin = async (req, res) => {
       $or: [{ email: emailOrUsername }, { username: emailOrUsername }],
     });
 
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user) return res.status(404).json({ error: "User not found" });
 
     const valid = await bcrypt.compare(password, user.password);
-    if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
+    if (!valid) return res.status(401).json({ error: "Invalid credentials" });
 
     // Auto-enroll in institute courses on login
     if (user.institute) {
@@ -235,16 +242,15 @@ export const signin = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, uuid: user.uuid, role: user.role, email: user.email },
+      { id: user._id, role: user.role, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: "7d" },
     );
 
     res.status(200).json({
       token,
       user: {
         _id: user._id,
-        uuid: user.uuid,
         firstName: user.firstName,
         lastName: user.lastName,
         username: user.username,
@@ -255,6 +261,6 @@ export const signin = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: "Server error" });
   }
 };

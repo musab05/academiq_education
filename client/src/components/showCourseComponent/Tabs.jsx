@@ -1,9 +1,17 @@
-import React from 'react';
+import React from "react";
 
 const Tabs = ({ tabs, active, onChange }) => (
-  <div className="bg-white rounded-md shadow-sm p-0.5 sm:p-1 flex gap-0.5 sm:gap-1 border border-gray-100 overflow-x-auto scrollbar-hide">
+  <div className="flex gap-1 sm:gap-2 overflow-x-auto scrollbar-hide pb-1">
     {tabs.map((t) => (
-      <button key={t} onClick={() => onChange(t)} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[10px] sm:text-xs md:text-sm rounded-md font-medium whitespace-nowrap tap-target ${active === t ? "bg-white shadow text-orange-600" : "text-gray-600 hover:text-gray-900"}`}>
+      <button
+        key={t}
+        onClick={() => onChange(t)}
+        className={`px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 text-xs sm:text-sm rounded-xl font-medium whitespace-nowrap tap-target transition-all duration-200 ${
+          active === t
+            ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25"
+            : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+        }`}
+      >
         {t}
       </button>
     ))}

@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { motion } from 'framer-motion';
-import { Calendar, Plus, Video, Users, Clock } from 'lucide-react';
-import Sidebar from '../../components/Sidebar';
-import Header from '../../components/Header';
-import { classroomAPI } from '../../services/api';
-import CreateSessionModal from './CreateSessionModal';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { motion } from "framer-motion";
+import { Calendar, Plus, Video, Users, Clock } from "lucide-react";
+import Sidebar from "../../components/Sidebar";
+import Header from "../../components/Header";
+import { classroomAPI, classroomManagementAPI } from "../../services/api";
+import CreateSessionModal from "./CreateSessionModal";
 
 const ClassroomSessionsPage = () => {
   const { classroomId } = useParams();
   const [sessions, setSessions] = useState([]);
+  const [classroom, setClassroom] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -18,16 +19,72 @@ const ClassroomSessionsPage = () => {
   const currentUser = useSelector((state) => state.user.user);
   const navigate = useNavigate();
 
+  // Check if current user can manage this classroom (context-specific role)
+  const canManageClassroom = () => {
+    if (!currentUser || !classroom) return false;
+    // Superadmin can manage any classroom
+    if (currentUser.role === "superadmin") return true;
+    // Check if user is the instructor of this classroom
+    if (
+      classroom.instructor?._id === currentUser._id ||
+      classroom.instructor === currentUser._id
+    )
+      return true;
+    // Check if user is the creator of this classroom
+    if (
+      classroom.createdBy?._id === currentUser._id ||
+      classroom.createdBy === currentUser._id
+    )
+      return true;
+    // Check if user is the institute admin (if classroom belongs to an institute)
+    if (
+      classroom.institute?.admin === currentUser._id ||
+      classroom.institute?.admin?._id === currentUser._id
+    )
+      return true;
+    return false;
+  };
+
   useEffect(() => {
+    fetchClassroom();
     fetchSessions();
   }, [classroomId]);
+
+  const fetchClassroom = async () => {
+    try {
+      // Try to find the classroom in both enrolled and managed classrooms
+      let found = null;
+
+      // First check enrolled classrooms (my-classrooms)
+      try {
+        const enrolledResponse = await classroomManagementAPI.getMyClassrooms();
+        found = enrolledResponse.data.find((c) => c._id === classroomId);
+      } catch (err) {
+        console.error("Error fetching enrolled classrooms:", err);
+      }
+
+      // If not found in enrolled, check managed classrooms (for instructors/admins)
+      if (!found && currentUser?.role !== "student") {
+        try {
+          const managedResponse = await classroomManagementAPI.getAll();
+          found = managedResponse.data.find((c) => c._id === classroomId);
+        } catch (err) {
+          console.error("Error fetching managed classrooms:", err);
+        }
+      }
+
+      setClassroom(found);
+    } catch (error) {
+      console.error("Error fetching classroom:", error);
+    }
+  };
 
   const fetchSessions = async () => {
     try {
       const response = await classroomAPI.getSessions({ classroomId });
       setSessions(response.data);
     } catch (error) {
-      console.error('Error fetching sessions:', error);
+      console.error("Error fetching sessions:", error);
     } finally {
       setLoading(false);
     }
@@ -37,29 +94,35 @@ const ClassroomSessionsPage = () => {
     const now = new Date();
     const startTime = new Date(session.startTime);
     const endTime = new Date(session.endTime);
-    
-    if (now < startTime) return 'upcoming';
-    if (now >= startTime && now <= endTime) return 'live';
-    return 'ended';
-  };
 
-  const isInstructor = currentUser?.role !== 'student';
+    if (now < startTime) return "upcoming";
+    if (now >= startTime && now <= endTime) return "live";
+    return "ended";
+  };
 
   return (
     <div className="flex bg-gray-50 h-screen overflow-hidden">
-      <Sidebar collapsed={sidebarCollapsed} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <Header onMenuClick={() => {
-          setSidebarCollapsed(!sidebarCollapsed);
-          setSidebarOpen(!sidebarOpen);
-        }} />
-        
+        <Header
+          onMenuClick={() => {
+            setSidebarCollapsed(!sidebarCollapsed);
+            setSidebarOpen(!sidebarOpen);
+          }}
+        />
+
         <div className="flex-1 p-4 sm:p-6 md:p-8">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Sessions</h1>
-              {currentUser?.role !== 'student' && (
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
+                Sessions
+              </h1>
+              {canManageClassroom() && (
                 <button
                   onClick={() => setShowCreateModal(true)}
                   className="tap-target w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
@@ -77,39 +140,59 @@ const ClassroomSessionsPage = () => {
             ) : sessions.length === 0 ? (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-12 text-center">
                 <Calendar className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-sm sm:text-base">No sessions scheduled yet</p>
+                <p className="text-gray-500 text-sm sm:text-base">
+                  No sessions scheduled yet
+                </p>
               </div>
             ) : (
               <div className="grid gap-3 sm:gap-4">
                 {sessions.map((session) => {
                   const status = getSessionStatus(session);
-                  const isEnded = status === 'ended';
-                  
+                  const isEnded = status === "ended";
+
                   return (
                     <div
                       key={session._id}
-                      onClick={() => !isEnded && navigate(`/classrooms/${session._id}`)}
+                      onClick={() =>
+                        !isEnded && navigate(`/classrooms/${session._id}`)
+                      }
                       className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 transition-all ${
-                        isEnded ? 'opacity-60 cursor-not-allowed' : 'hover:border-orange-500 cursor-pointer'
+                        isEnded
+                          ? "opacity-60 cursor-not-allowed"
+                          : "hover:border-orange-500 cursor-pointer"
                       }`}
                     >
                       <div className="flex flex-col sm:flex-row items-start gap-3 sm:justify-between">
                         <div className="flex-1 w-full sm:w-auto min-w-0">
                           <div className="flex items-center gap-2 sm:gap-3 mb-2">
                             <Video className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 flex-shrink-0" />
-                            <h3 className="font-semibold text-gray-900 text-base sm:text-lg truncate">{session.title}</h3>
+                            <h3 className="font-semibold text-gray-900 text-base sm:text-lg truncate">
+                              {session.title}
+                            </h3>
                           </div>
-                          <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">{session.description}</p>
+                          <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">
+                            {session.description}
+                          </p>
                           <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-500">
                             <div className="flex items-center gap-1.5 sm:gap-2">
                               <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                              <span>{new Date(session.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                              <span>
+                                {new Date(session.startTime).toLocaleDateString(
+                                  "en-US",
+                                  { month: "short", day: "numeric" },
+                                )}
+                              </span>
                             </div>
                             <div className="flex items-center gap-1.5 sm:gap-2">
                               <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                              <span>{new Date(session.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              <span>
+                                {new Date(session.startTime).toLocaleTimeString(
+                                  [],
+                                  { hour: "2-digit", minute: "2-digit" },
+                                )}
+                              </span>
                             </div>
-                            <div 
+                            <div
                               className="tap-target flex items-center gap-1.5 sm:gap-2 cursor-pointer hover:text-orange-600"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -117,15 +200,23 @@ const ClassroomSessionsPage = () => {
                               }}
                             >
                               <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                              <span>{session.attendance?.filter(a => !a.leaveTime).length || 0} / {session.maxParticipants}</span>
+                              <span>
+                                {session.attendance?.filter((a) => !a.leaveTime)
+                                  .length || 0}{" "}
+                                / {session.maxParticipants}
+                              </span>
                             </div>
                           </div>
                         </div>
-                        <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold flex-shrink-0 self-start ${
-                          status === 'live' ? 'bg-green-100 text-green-800' :
-                          status === 'upcoming' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span
+                          className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold flex-shrink-0 self-start ${
+                            status === "live"
+                              ? "bg-green-100 text-green-800"
+                              : status === "upcoming"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
                           {status}
                         </span>
                       </div>

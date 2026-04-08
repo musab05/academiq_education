@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { X, User, Users, BookOpen, ChevronDown } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { X, User, Users, BookOpen, ChevronDown, Info } from "lucide-react";
 import { userAPI, teamAPI, courseAPI } from "../../services/api";
+import { useSelector } from "react-redux";
 
 const CreateEnrollmentModal = ({
   isOpen,
@@ -9,6 +10,7 @@ const CreateEnrollmentModal = ({
   enrollmentType = "user", // 'user' or 'team'
   title,
 }) => {
+  const { user: currentUser } = useSelector((state) => state.auth);
   const [formData, setFormData] = useState({
     enrolleeId: "",
     courseId: "",
@@ -19,6 +21,55 @@ const CreateEnrollmentModal = ({
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Get selected course for filtering already enrolled users
+  const selectedCourse = useMemo(() => {
+    return courses.find((c) => c._id === formData.courseId);
+  }, [courses, formData.courseId]);
+
+  // Filter courses to only show courses user can manage (context-specific role)
+  const manageableCourses = useMemo(() => {
+    if (!currentUser) return [];
+    // Superadmin can manage all courses
+    if (currentUser.role === "superadmin") return courses;
+    return courses.filter((course) => {
+      // Check if user is the author
+      if (
+        course.author?._id === currentUser._id ||
+        course.author === currentUser._id
+      )
+        return true;
+      // Check if user is the creator
+      if (
+        course.createdBy?._id === currentUser._id ||
+        course.createdBy === currentUser._id
+      )
+        return true;
+      // Check if user is the institute admin
+      if (
+        course.institute?.admin === currentUser._id ||
+        course.institute?.admin?._id === currentUser._id
+      )
+        return true;
+      return false;
+    });
+  }, [courses, currentUser]);
+
+  // Filter enrollee options to exclude superadmins, current user, and already enrolled users
+  const filteredEnrolleeOptions = useMemo(() => {
+    if (enrollmentType === "user") {
+      return users.filter((user) => {
+        // Exclude superadmins
+        if (user.role === "superadmin") return false;
+        // Exclude current user
+        if (user._id === currentUser?._id) return false;
+        // Exclude users already enrolled in selected course
+        if (selectedCourse?.enrolledUsers?.includes(user._id)) return false;
+        return true;
+      });
+    }
+    return teams;
+  }, [users, teams, enrollmentType, currentUser, selectedCourse]);
 
   useEffect(() => {
     if (isOpen) {
@@ -89,11 +140,15 @@ const CreateEnrollmentModal = ({
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
+    // Clear enrollee selection when course changes (as filtered list changes)
+    if (field === "courseId") {
+      setFormData((prev) => ({ ...prev, enrolleeId: "" }));
+    }
   };
 
   if (!isOpen) return null;
 
-  const enrolleeOptions = enrollmentType === "user" ? users : teams;
+  const enrolleeOptions = filteredEnrolleeOptions;
   const enrolleeLabel = enrollmentType === "user" ? "User" : "Team";
   const enrolleeIcon =
     enrollmentType === "user" ? (
@@ -182,7 +237,7 @@ const CreateEnrollmentModal = ({
                     }`}
                   >
                     <option value="">Choose a course...</option>
-                    {courses.map((course) => (
+                    {manageableCourses.map((course) => (
                       <option key={course._id} value={course._id}>
                         {course.title} ({course.level})
                       </option>
@@ -208,6 +263,18 @@ const CreateEnrollmentModal = ({
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
                 />
               </div>
+
+              {/* Info Note */}
+              {enrollmentType === "user" && (
+                <div className="flex items-start gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                  <Info className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-orange-800">
+                    Users enrolled will be considered as students for this
+                    course. Superadmins and already enrolled users are excluded
+                    from selection.
+                  </p>
+                </div>
+              )}
             </>
           )}
 

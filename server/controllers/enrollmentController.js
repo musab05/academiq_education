@@ -15,6 +15,7 @@ export const getEnrollments = async (req, res) => {
   try {
     const {
       enrolleeType,
+      enrolleeId,
       courseId,
       courseSlug,
       status,
@@ -23,11 +24,54 @@ export const getEnrollments = async (req, res) => {
       limit = 10,
       search,
     } = req.query;
+    const currentUser = req.user;
 
     const filter = { isActive: true };
 
     if (enrolleeType) filter.enrolleeType = enrolleeType;
+    if (enrolleeId) filter.enrolleeId = enrolleeId;
     if (courseId) filter.course = courseId;
+
+    console.log("DEBUG getEnrollments:", {
+      enrolleeType,
+      enrolleeId,
+      courseId,
+      userRole: currentUser?.role,
+      userId: currentUser?._id,
+    });
+
+    // For team enrollments, only show enrollments for teams where user is a member
+    // Superadmins can see all team enrollments
+    // Only apply this filter if no specific enrolleeId was requested
+    if (
+      enrolleeType === "team" &&
+      !enrolleeId &&
+      currentUser.role !== "superadmin"
+    ) {
+      console.log(
+        "Filtering team enrollments for user:",
+        currentUser._id,
+        "role:",
+        currentUser.role,
+      );
+      const userTeams = await Team.find({
+        isActive: { $ne: false }, // More lenient: allow true or undefined
+        "members.user": currentUser._id,
+      }).select("_id");
+      console.log(
+        "Found user teams:",
+        userTeams.length,
+        userTeams.map((t) => t._id),
+      );
+      const userTeamIds = userTeams.map((t) => t._id);
+      if (userTeamIds.length === 0) {
+        // User is not in any teams, return empty result
+        filter.enrolleeId = { $in: [] };
+      } else {
+        filter.enrolleeId = { $in: userTeamIds };
+      }
+      console.log("Final filter:", JSON.stringify(filter));
+    }
     if (courseSlug) {
       const course = await Course.findOne({ slug: courseSlug });
       if (course) filter.course = course._id;
@@ -95,15 +139,16 @@ export const getEnrollments = async (req, res) => {
       .skip(skip)
       .limit(limitNum)
       .lean();
-    
+
     // Manually populate progress for each enrollment
     for (let i = 0; i < enrollments.length; i++) {
-      if (enrollments[i].enrolleeType === 'user' && enrollments[i].enrolleeId) {
-        const progress = await Progress.findOne({ 
-          user: enrollments[i].enrolleeId._id, 
-          course: enrollments[i].course 
+      if (enrollments[i].enrolleeType === "user" && enrollments[i].enrolleeId) {
+        const progressDoc = await Progress.findOne({
+          user: enrollments[i].enrolleeId._id,
+          course: enrollments[i].course,
         });
-        enrollments[i].progress = progress;
+        // Extract just the progress number, not the entire document
+        enrollments[i].progress = progressDoc?.progress || 0;
       }
     }
 
@@ -292,7 +337,7 @@ export const updateEnrollment = async (req, res) => {
     const updatedEnrollment = await Enrollment.findByIdAndUpdate(
       id,
       updateData,
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     ).populate([
       { path: "course", select: "title slug thumbnail" },
       { path: "enrolledBy", select: "firstName lastName email" },
@@ -348,8 +393,8 @@ export const getUserEnrollments = async (req, res) => {
     const { userId } = req.params;
     const { status, page = 1, limit = 10 } = req.query;
 
-    // Find user by _id or uuid
-    const user = await User.findById(userId).catch(() => null) || await User.findOne({ uuid: userId });
+    // Find user by _id
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -523,40 +568,43 @@ export const bulkEnroll = async (req, res) => {
 export const getTeamEnrollmentDetails = async (req, res) => {
   try {
     const { courseSlug, teamId } = req.params;
-    
+
     const course = await Course.findOne({ slug: courseSlug });
     if (!course) {
-      return res.status(404).json({ error: 'Course not found' });
+      return res.status(404).json({ error: "Course not found" });
     }
 
-    const team = await Team.findById(teamId).populate('members.user', 'firstName lastName email');
+    const team = await Team.findById(teamId).populate(
+      "members.user",
+      "firstName lastName email",
+    );
     if (!team) {
-      return res.status(404).json({ error: 'Team not found' });
+      return res.status(404).json({ error: "Team not found" });
     }
 
     const enrollment = await Enrollment.findOne({
       course: course._id,
-      enrolleeType: 'team',
+      enrolleeType: "team",
       enrolleeId: teamId,
-      isActive: true
-    }).populate('teamMemberProgress.user', 'firstName lastName email');
+      isActive: true,
+    }).populate("teamMemberProgress.user", "firstName lastName email");
 
     if (!enrollment) {
-      return res.status(404).json({ error: 'Team enrollment not found' });
+      return res.status(404).json({ error: "Team enrollment not found" });
     }
 
     res.json({
       team: {
         _id: team._id,
         name: team.name,
-        description: team.description
+        description: team.description,
       },
       enrollment,
-      memberProgress: enrollment.teamMemberProgress || []
+      memberProgress: enrollment.teamMemberProgress || [],
     });
   } catch (error) {
-    console.error('Error fetching team enrollment details:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error fetching team enrollment details:", error);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -564,82 +612,117 @@ export const getTeamEnrollmentDetails = async (req, res) => {
 export const getGlobalReports = async (req, res) => {
   try {
     const totalCourses = await Course.countDocuments();
-    const totalEnrollments = await Enrollment.countDocuments({ enrolleeType: 'user', isActive: true });
-    const enrolledUserIds = await Enrollment.distinct('enrolleeId', { enrolleeType: 'user', isActive: true });
+    const totalEnrollments = await Enrollment.countDocuments({
+      enrolleeType: "user",
+      isActive: true,
+    });
+    const enrolledUserIds = await Enrollment.distinct("enrolleeId", {
+      enrolleeType: "user",
+      isActive: true,
+    });
     const totalUsers = enrolledUserIds.length;
 
     // Course stats
-    const courses = await Course.find().select('_id title');
-    const courseStats = await Promise.all(courses.map(async (course) => {
-      const enrollments = await Enrollment.find({ course: course._id, enrolleeType: 'user', isActive: true });
-      
-      let totalProgress = 0;
-      let completedCount = 0;
-      
-      for (const enrollment of enrollments) {
-        const progress = await Progress.findOne({ user: enrollment.enrolleeId, course: course._id });
-        if (progress) {
-          totalProgress += progress.progress || 0;
-          if (progress.status === 'completed') completedCount++;
+    const courses = await Course.find().select("_id title");
+    const courseStats = await Promise.all(
+      courses.map(async (course) => {
+        const enrollments = await Enrollment.find({
+          course: course._id,
+          enrolleeType: "user",
+          isActive: true,
+        });
+
+        let totalProgress = 0;
+        let completedCount = 0;
+
+        for (const enrollment of enrollments) {
+          const progress = await Progress.findOne({
+            user: enrollment.enrolleeId,
+            course: course._id,
+          });
+          if (progress) {
+            totalProgress += progress.progress || 0;
+            if (progress.status === "completed") completedCount++;
+          }
         }
-      }
-      
-      const avgProgress = enrollments.length > 0 ? Math.round(totalProgress / enrollments.length) : 0;
-      const completionRate = enrollments.length > 0 ? Math.round((completedCount / enrollments.length) * 100) : 0;
-      
-      return {
-        courseId: course._id,
-        courseTitle: course.title,
-        enrolledUsers: enrollments.length,
-        avgProgress,
-        completionRate
-      };
-    }));
+
+        const avgProgress =
+          enrollments.length > 0
+            ? Math.round(totalProgress / enrollments.length)
+            : 0;
+        const completionRate =
+          enrollments.length > 0
+            ? Math.round((completedCount / enrollments.length) * 100)
+            : 0;
+
+        return {
+          courseId: course._id,
+          courseTitle: course.title,
+          enrolledUsers: enrollments.length,
+          avgProgress,
+          completionRate,
+        };
+      }),
+    );
 
     // User stats
-    const users = await User.find({ _id: { $in: enrolledUserIds } }).select('_id firstName lastName email');
-    const userStats = await Promise.all(users.map(async (user) => {
-      const enrollments = await Enrollment.find({ enrolleeId: user._id, enrolleeType: 'user', isActive: true });
-      
-      let totalProgress = 0;
-      let completedCount = 0;
-      let inProgressCount = 0;
-      
-      for (const enrollment of enrollments) {
-        const progress = await Progress.findOne({ user: user._id, course: enrollment.course });
-        if (progress) {
-          totalProgress += progress.progress || 0;
-          if (progress.status === 'completed') completedCount++;
-          else if (progress.progress > 0) inProgressCount++;
+    const users = await User.find({ _id: { $in: enrolledUserIds } }).select(
+      "_id firstName lastName email",
+    );
+    const userStats = await Promise.all(
+      users.map(async (user) => {
+        const enrollments = await Enrollment.find({
+          enrolleeId: user._id,
+          enrolleeType: "user",
+          isActive: true,
+        });
+
+        let totalProgress = 0;
+        let completedCount = 0;
+        let inProgressCount = 0;
+
+        for (const enrollment of enrollments) {
+          const progress = await Progress.findOne({
+            user: user._id,
+            course: enrollment.course,
+          });
+          if (progress) {
+            totalProgress += progress.progress || 0;
+            if (progress.status === "completed") completedCount++;
+            else if (progress.progress > 0) inProgressCount++;
+          }
         }
-      }
-      
-      const avgProgress = enrollments.length > 0 ? Math.round(totalProgress / enrollments.length) : 0;
-      
-      return {
-        userId: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        enrolledCourses: enrollments.length,
-        completedCourses: completedCount,
-        inProgressCourses: inProgressCount,
-        avgProgress
-      };
-    }));
+
+        const avgProgress =
+          enrollments.length > 0
+            ? Math.round(totalProgress / enrollments.length)
+            : 0;
+
+        return {
+          userId: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          enrolledCourses: enrollments.length,
+          completedCourses: completedCount,
+          inProgressCourses: inProgressCount,
+          avgProgress,
+        };
+      }),
+    );
 
     res.json({
       stats: {
         totalCourses,
         totalUsers,
-        totalEnrollments
+        totalEnrollments,
       },
       courseStats,
-      userStats
+      userStats,
     });
   } catch (error) {
-    console.error('Error fetching global reports:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error fetching global reports:", error);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -647,32 +730,39 @@ export const getGlobalReports = async (req, res) => {
 export const getCourseEnrollmentDetails = async (req, res) => {
   try {
     const { courseId } = req.params;
-    
+
     const course = await Course.findById(courseId);
     if (!course) {
-      return res.status(404).json({ error: 'Course not found' });
+      return res.status(404).json({ error: "Course not found" });
     }
 
-    const enrollments = await Enrollment.find({ course: courseId, enrolleeType: 'user', isActive: true })
-      .populate('enrolleeId', 'firstName lastName email')
+    const enrollments = await Enrollment.find({
+      course: courseId,
+      enrolleeType: "user",
+      isActive: true,
+    })
+      .populate("enrolleeId", "firstName lastName email")
       .lean();
-    
+
     for (let i = 0; i < enrollments.length; i++) {
-      const progress = await Progress.findOne({ user: enrollments[i].enrolleeId._id, course: courseId });
+      const progressDoc = await Progress.findOne({
+        user: enrollments[i].enrolleeId._id,
+        course: courseId,
+      });
       enrollments[i].user = enrollments[i].enrolleeId;
-      enrollments[i].progress = progress;
+      enrollments[i].progress = progressDoc?.progress || 0;
     }
 
     res.json({
       course: {
         _id: course._id,
-        title: course.title
+        title: course.title,
       },
-      enrollments
+      enrollments,
     });
   } catch (error) {
-    console.error('Error fetching course enrollment details:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error fetching course enrollment details:", error);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -680,27 +770,34 @@ export const getCourseEnrollmentDetails = async (req, res) => {
 export const getUserEnrollmentDetails = async (req, res) => {
   try {
     const { userId } = req.params;
-    
-    const user = await User.findById(userId).select('firstName lastName email');
+
+    const user = await User.findById(userId).select("firstName lastName email");
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
-    const enrollments = await Enrollment.find({ enrolleeId: userId, enrolleeType: 'user', isActive: true })
-      .populate('course', 'title slug')
+    const enrollments = await Enrollment.find({
+      enrolleeId: userId,
+      enrolleeType: "user",
+      isActive: true,
+    })
+      .populate("course", "title slug")
       .lean();
-    
+
     for (let i = 0; i < enrollments.length; i++) {
-      const progress = await Progress.findOne({ user: userId, course: enrollments[i].course._id });
-      enrollments[i].progress = progress;
+      const progressDoc = await Progress.findOne({
+        user: userId,
+        course: enrollments[i].course._id,
+      });
+      enrollments[i].progress = progressDoc?.progress || 0;
     }
 
     res.json({
       user,
-      enrollments
+      enrollments,
     });
   } catch (error) {
-    console.error('Error fetching user enrollment details:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error fetching user enrollment details:", error);
+    res.status(500).json({ error: "Server error" });
   }
 };

@@ -72,7 +72,7 @@ const UserEnrollmentsPage = () => {
   const { slug } = useParams();
   const { user } = useSelector((state) => state.user);
   const { userEnrollments, loading, pagination, filters } = useSelector(
-    (state) => state.enrollment
+    (state) => state.enrollment,
   );
   const { currentCourseId } = useSelector((state) => state.lesson);
   const { showNotification } = useNotification();
@@ -82,6 +82,33 @@ const UserEnrollmentsPage = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedEnrollments, setSelectedEnrollments] = useState([]);
+  const [currentCourse, setCurrentCourse] = useState(null);
+
+  // Check if current user can manage this course (context-specific role)
+  const canManageCourse = () => {
+    if (!user || !currentCourse) return false;
+    // Superadmin can manage any course
+    if (user.role === "superadmin") return true;
+    // Check if user is the author of this course
+    if (
+      currentCourse.author?._id === user._id ||
+      currentCourse.author === user._id
+    )
+      return true;
+    // Check if user is the creator of this course
+    if (
+      currentCourse.createdBy?._id === user._id ||
+      currentCourse.createdBy === user._id
+    )
+      return true;
+    // Check if user is the institute admin (if course belongs to an institute)
+    if (
+      currentCourse.institute?.admin === user._id ||
+      currentCourse.institute?.admin?._id === user._id
+    )
+      return true;
+    return false;
+  };
 
   // Load course from slug if provided
   useEffect(() => {
@@ -94,9 +121,26 @@ const UserEnrollmentsPage = () => {
     try {
       const response = await courseAPI.getBySlug(slug);
       dispatch(setCurrentCourse(response.data._id));
+      setCurrentCourse(response.data);
     } catch (error) {
       console.error("Error loading course from slug:", error);
       showNotification("Failed to load course information", "error");
+    }
+  };
+
+  // Fetch course data when currentCourseId changes
+  useEffect(() => {
+    if (currentCourseId && !currentCourse) {
+      fetchCourseData();
+    }
+  }, [currentCourseId]);
+
+  const fetchCourseData = async () => {
+    try {
+      const response = await courseAPI.getById(currentCourseId);
+      setCurrentCourse(response.data);
+    } catch (error) {
+      console.error("Error fetching course data:", error);
     }
   };
 
@@ -128,13 +172,11 @@ const UserEnrollmentsPage = () => {
     }
   };
 
-
-
   const handleCreateEnrollment = () => {
     if (!currentCourseId) {
       showNotification(
         "No course selected. Please select a course first.",
-        "warning"
+        "warning",
       );
       return;
     }
@@ -185,10 +227,19 @@ const UserEnrollmentsPage = () => {
 
   return (
     <div className="flex bg-gray-50 h-screen overflow-hidden">
-      <Sidebar collapsed={sidebarCollapsed} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <Header onMenuClick={() => { setSidebarCollapsed(!sidebarCollapsed); setSidebarOpen(true); }} />
+        <Header
+          onMenuClick={() => {
+            setSidebarCollapsed(!sidebarCollapsed);
+            setSidebarOpen(true);
+          }}
+        />
 
         <div className="flex-1 overflow-auto p-4 sm:p-6">
           <div className="max-w-7xl mx-auto">
@@ -233,14 +284,16 @@ const UserEnrollmentsPage = () => {
                 </button>
               </div>
 
-              <button
-                onClick={handleCreateEnrollment}
-                disabled={!currentCourseId}
-                className="flex items-center justify-center space-x-2 px-4 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed tap-target text-sm sm:text-base w-full sm:w-auto"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Enroll Users</span>
-              </button>
+              {canManageCourse() && (
+                <button
+                  onClick={handleCreateEnrollment}
+                  disabled={!currentCourseId}
+                  className="flex items-center justify-center space-x-2 px-4 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed tap-target text-sm sm:text-base w-full sm:w-auto"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Enroll Users</span>
+                </button>
+              )}
             </div>
 
             {/* Enrollments Table */}
@@ -288,9 +341,11 @@ const UserEnrollmentsPage = () => {
                         <th className="hidden xl:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Enrolled
                         </th>
-                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Actions
-                        </th>
+                        {canManageCourse() && (
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        )}
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -352,34 +407,39 @@ const UserEnrollmentsPage = () => {
                               <div
                                 className="bg-orange-500 h-2 rounded-full"
                                 style={{
-                                  width: `${typeof enrollment.progress === 'number' ? enrollment.progress : 0}%`,
+                                  width: `${typeof enrollment.progress === "number" ? enrollment.progress : 0}%`,
                                 }}
                               ></div>
                             </div>
                             <span className="text-xs text-gray-500 mt-1 block">
-                              {typeof enrollment.progress === 'number' ? enrollment.progress : 0}% complete
+                              {typeof enrollment.progress === "number"
+                                ? enrollment.progress
+                                : 0}
+                              % complete
                             </span>
                           </td>
                           <td className="hidden xl:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                             {new Date(
-                              enrollment.enrolledAt
+                              enrollment.enrolledAt,
                             ).toLocaleDateString()}
                           </td>
-                          <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium">
-                            <div className="flex gap-1 sm:gap-2">
-                              <button className="text-orange-600 hover:text-orange-900 p-1 tap-target">
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleDeleteEnrollment(enrollment._id)
-                                }
-                                className="text-red-600 hover:text-red-900 p-1 tap-target"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
+                          {canManageCourse() && (
+                            <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium">
+                              <div className="flex gap-1 sm:gap-2">
+                                <button className="text-orange-600 hover:text-orange-900 p-1 tap-target">
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleDeleteEnrollment(enrollment._id)
+                                  }
+                                  className="text-red-600 hover:text-red-900 p-1 tap-target"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          )}
                         </motion.tr>
                       ))}
                     </tbody>
